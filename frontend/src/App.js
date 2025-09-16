@@ -412,6 +412,7 @@ const Courses = () => {
 
 // Notes/Study Materials Page Component
 const Notes = () => {
+  const { toast } = useToast();
   const [pdfs, setPdfs] = useState([]);
   const [loading, setLoading] = useState(true);
   const [selectedExam, setSelectedExam] = useState('All');

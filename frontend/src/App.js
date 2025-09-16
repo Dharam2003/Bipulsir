@@ -1,9 +1,19 @@
-import React, { useState, useEffect } from "react";
+import React from "react";
 import "./App.css";
-import { BrowserRouter, Routes, Route, useNavigate, Link } from "react-router-dom";
-import axios from "axios";
-import { useToast } from "./hooks/use-toast";
+import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { Toaster } from "./components/ui/toaster";
+
+// Import new modular components
+import Header from "./components/layout/Header";
+import Footer from "./components/layout/Footer";
+import Home from "./pages/Home";
+import About from "./pages/About";
+import Courses from "./pages/Courses";
+import Notes from "./pages/Notes";
+import Contact from "./pages/Contact";
+
+// Keep existing components for now (Schedule, Admin)
+import axios from "axios";
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 const API = `${BACKEND_URL}/api`;

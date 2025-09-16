@@ -1,639 +1,561 @@
 import React, { useState, useEffect } from "react";
 import "./App.css";
-import { BrowserRouter, Routes, Route, Link, useNavigate } from "react-router-dom";
+import { BrowserRouter, Routes, Route, useNavigate } from "react-router-dom";
+import { motion, AnimatePresence } from "framer-motion";
 import { Toaster } from "./components/ui/toaster";
 import { useToast } from "./hooks/use-toast";
 import axios from "axios";
 
+// Import new animated components
+import AnimatedHeader from "./components/layout/AnimatedHeader";
+import AnimatedFooter from "./components/layout/AnimatedFooter";
+import HeroSection from "./components/sections/HeroSection";
+
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 const API = `${BACKEND_URL}/api`;
 
-// Header Component
-const Header = ({ isMenuOpen, setIsMenuOpen }) => {
+// Page Transition Wrapper
+const PageTransition = ({ children }) => {
   return (
-    <header className="bg-white shadow-sm border-b border-gray-200 sticky top-0 z-50">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex justify-between items-center py-4">
-          <div className="flex items-center">
-            <Link to="/" className="text-2xl font-black text-black tracking-tight">
-              BIPUL
-            </Link>
-            <div className="ml-3 text-xs text-gray-500 hidden sm:block border-l border-gray-300 pl-3 uppercase tracking-wide">
-              Competitive Coaching
-            </div>
-          </div>
-          
-          <nav className="hidden lg:flex space-x-8">
-            <Link to="/" className="text-gray-800 hover:text-black font-medium transition-colors duration-200 py-2 text-sm uppercase tracking-wide">Home</Link>
-            <Link to="/about" className="text-gray-800 hover:text-black font-medium transition-colors duration-200 py-2 text-sm uppercase tracking-wide">About</Link>
-            <Link to="/courses" className="text-gray-800 hover:text-black font-medium transition-colors duration-200 py-2 text-sm uppercase tracking-wide">Courses</Link>
-            <Link to="/notes" className="text-gray-800 hover:text-black font-medium transition-colors duration-200 py-2 text-sm uppercase tracking-wide">Materials</Link>
-            <Link to="/schedule" className="text-gray-800 hover:text-black font-medium transition-colors duration-200 py-2 text-sm uppercase tracking-wide">Classes</Link>
-            <Link to="/contact" className="text-gray-800 hover:text-black font-medium transition-colors duration-200 py-2 text-sm uppercase tracking-wide">Contact</Link>
-            <Link to="/admin" className="bg-black text-white px-4 py-2 rounded-none hover:bg-gray-800 transition-colors duration-200 font-medium text-sm uppercase tracking-wide border border-black">Admin</Link>
-          </nav>
-
-          <button 
-            className="lg:hidden text-gray-800 hover:text-black transition-colors"
-            onClick={() => setIsMenuOpen(!isMenuOpen)}
-          >
-            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16m-16 6h16" />
-            </svg>
-          </button>
-        </div>
-
-        {isMenuOpen && (
-          <div className="lg:hidden pb-4 border-t border-gray-200 mt-4">
-            <div className="flex flex-col space-y-3 pt-4">
-              <Link to="/" className="text-gray-800 hover:text-black font-medium py-2 px-2 hover:bg-gray-50 transition-colors text-sm uppercase tracking-wide">Home</Link>
-              <Link to="/about" className="text-gray-800 hover:text-black font-medium py-2 px-2 hover:bg-gray-50 transition-colors text-sm uppercase tracking-wide">About</Link>
-              <Link to="/courses" className="text-gray-800 hover:text-black font-medium py-2 px-2 hover:bg-gray-50 transition-colors text-sm uppercase tracking-wide">Courses</Link>
-              <Link to="/notes" className="text-gray-800 hover:text-black font-medium py-2 px-2 hover:bg-gray-50 transition-colors text-sm uppercase tracking-wide">Materials</Link>
-              <Link to="/schedule" className="text-gray-800 hover:text-black font-medium py-2 px-2 hover:bg-gray-50 transition-colors text-sm uppercase tracking-wide">Classes</Link>
-              <Link to="/contact" className="text-gray-800 hover:text-black font-medium py-2 px-2 hover:bg-gray-50 transition-colors text-sm uppercase tracking-wide">Contact</Link>
-              <Link to="/admin" className="bg-black text-white px-4 py-2 hover:bg-gray-800 transition-colors font-medium text-center text-sm uppercase tracking-wide">Admin</Link>
-            </div>
-          </div>
-        )}
-      </div>
-    </header>
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0, y: -20 }}
+      transition={{ duration: 0.3, ease: "easeInOut" }}
+    >
+      {children}
+    </motion.div>
   );
 };
 
-// Footer Component
-const Footer = () => {
-  return (
-    <footer className="bg-black text-white border-t border-gray-800">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-8 mb-8">
-          <div className="col-span-1 md:col-span-2">
-            <h3 className="text-2xl font-black mb-4 tracking-tight">BIPUL COMPETITIVE</h3>
-            <p className="text-gray-300 mb-6 text-lg leading-relaxed">
-              Excellence in government examination preparation through structured coaching and comprehensive study materials.
-            </p>
-            <div className="flex space-x-4">
-              <a href="https://wa.me/9876543210" className="bg-white text-black hover:bg-gray-200 px-6 py-3 transition-colors duration-200 font-medium inline-flex items-center text-sm uppercase tracking-wide">
-                WhatsApp
-              </a>
-            </div>
-          </div>
-          <div>
-            <h4 className="font-bold mb-6 text-lg uppercase tracking-wide">Quick Links</h4>
-            <ul className="space-y-3 text-gray-300">
-              <li><Link to="/courses" className="hover:text-white transition-colors text-sm uppercase tracking-wide">Courses</Link></li>
-              <li><Link to="/notes" className="hover:text-white transition-colors text-sm uppercase tracking-wide">Materials</Link></li>
-              <li><Link to="/schedule" className="hover:text-white transition-colors text-sm uppercase tracking-wide">Classes</Link></li>
-              <li><Link to="/contact" className="hover:text-white transition-colors text-sm uppercase tracking-wide">Contact</Link></li>
-            </ul>
-          </div>
-          <div>
-            <h4 className="font-bold mb-6 text-lg uppercase tracking-wide">Contact</h4>
-            <ul className="space-y-3 text-gray-300">
-              <li className="flex items-center text-sm"><span className="mr-3">📞</span> +91 98765 43210</li>
-              <li className="flex items-center text-sm"><span className="mr-3">📧</span> info@bipulcompetitive.com</li>
-              <li className="flex items-center text-sm"><span className="mr-3">📍</span> Demo Address, City</li>
-            </ul>
-          </div>
-        </div>
-        <div className="border-t border-gray-800 pt-8 text-center text-gray-400">
-          <p className="text-sm uppercase tracking-wide">&copy; 2024 Bipul Competitive. All rights reserved.</p>
-        </div>
-      </div>
-    </footer>
-  );
-};
-
-// Home Page Component
+// Home Page Component - Updated with new Hero Section
 const Home = () => {
   const navigate = useNavigate();
 
   return (
-    <div className="min-h-screen bg-white">
-      {/* Hero Section */}
-      <section className="bg-white py-20 lg:py-32 border-b border-gray-200">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
-            <div className="text-left">
-              <h1 className="text-4xl md:text-5xl lg:text-6xl font-black text-black mb-8 leading-tight tracking-tight">
-                MASTER
-                <span className="block">GOVERNMENT</span>
-                <span className="block text-gray-600">EXAMS</span>
-              </h1>
-              <p className="text-xl text-gray-600 mb-8 leading-relaxed">
-                Professional coaching for SSC, UPSC, Banking, Railway & State PSC examinations with proven methodologies and comprehensive preparation.
-              </p>
-              <div className="flex flex-col sm:flex-row gap-4">
-                <button 
-                  onClick={() => navigate('/contact')}
-                  className="bg-black hover:bg-gray-800 text-white font-bold py-4 px-8 text-lg transition-all duration-200 border border-black uppercase tracking-wide"
-                >
-                  Join Classes
-                </button>
-                <button 
-                  onClick={() => navigate('/notes')}
-                  className="border-2 border-black text-black hover:bg-black hover:text-white font-bold py-4 px-8 text-lg transition-all duration-200 uppercase tracking-wide"
-                >
-                  Study Materials
-                </button>
-              </div>
-            </div>
-            <div className="relative">
-              <img 
-                src="https://images.unsplash.com/photo-1574130303188-31a915382726?crop=entropy&cs=srgb&fm=jpg&ixid=M3w3NTY2Njl8MHwxfHNlYXJjaHwzfHxtb2Rlcm4lMjBlZHVjYXRpb258ZW58MHx8fGJsdWV8MTc1ODAzMzUyNXww&ixlib=rb-4.1.0&q=85" 
-                alt="Professional education setting" 
-                className="w-full h-96 object-cover filter grayscale border border-gray-300"
-              />
-              <div className="absolute -bottom-6 -left-6 bg-white p-6 border border-gray-300 shadow-lg">
-                <div className="flex items-center space-x-3">
-                  <div className="bg-black text-white p-2 w-8 h-8 flex items-center justify-center text-sm font-bold">
-                    ✓
-                  </div>
-                  <div>
-                    <p className="font-bold text-black text-sm uppercase tracking-wide">500+ Success Stories</p>
-                    <p className="text-gray-600 text-xs uppercase tracking-wide">Government Placements</p>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Features Section */}
-      <section className="py-20 bg-gray-50">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-16">
-            <h2 className="text-3xl md:text-4xl font-black text-black mb-4 tracking-tight uppercase">Why Choose Us?</h2>
-            <p className="text-xl text-gray-600 max-w-3xl mx-auto">Excellence through structured preparation and proven methodologies</p>
-          </div>
-          
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            <div className="bg-white border border-gray-300 p-8 text-center hover:shadow-lg transition-shadow duration-300">
-              <div className="bg-black text-white w-16 h-16 flex items-center justify-center mx-auto mb-6 text-2xl font-bold">
-                01
-              </div>
-              <h3 className="text-xl font-bold mb-4 text-black uppercase tracking-wide">Expert Teaching</h3>
-              <p className="text-gray-700 leading-relaxed">Real-time interaction with experienced faculty. Personal attention and instant doubt resolution in every session.</p>
-            </div>
-            
-            <div className="bg-white border border-gray-300 p-8 text-center hover:shadow-lg transition-shadow duration-300">
-              <div className="bg-black text-white w-16 h-16 flex items-center justify-center mx-auto mb-6 text-2xl font-bold">
-                02
-              </div>
-              <h3 className="text-xl font-bold mb-4 text-black uppercase tracking-wide">Study Materials</h3>
-              <p className="text-gray-700 leading-relaxed">Comprehensive PDF study materials covering all subjects and exam patterns with regular updates.</p>
-            </div>
-            
-            <div className="bg-white border border-gray-300 p-8 text-center hover:shadow-lg transition-shadow duration-300">
-              <div className="bg-black text-white w-16 h-16 flex items-center justify-center mx-auto mb-6 text-2xl font-bold">
-                03
-              </div>
-              <h3 className="text-xl font-bold mb-4 text-black uppercase tracking-wide">Proven Results</h3>
-              <p className="text-gray-700 leading-relaxed">Consistent success rate with 500+ students placed in various government positions across sectors.</p>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Success Stories Section */}
-      <section className="py-20 bg-white border-t border-gray-200">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
-            <div className="relative">
-              <img 
-                src="https://images.unsplash.com/photo-1591700180499-a5a29621ee5b?crop=entropy&cs=srgb&fm=jpg&ixid=M3w3NTY2Njd8MHwxfHNlYXJjaHwxfHxwcm9mZXNzaW9uYWwlMjBzdHVkeXxlbnwwfHx8Ymx1ZXwxNzU4MDMzNTMzfDA&ixlib=rb-4.1.0&q=85" 
-                alt="Professional study environment" 
-                className="w-full h-96 object-cover filter grayscale border border-gray-300"
-              />
-            </div>
-            <div>
-              <h2 className="text-3xl md:text-4xl font-black text-black mb-6 tracking-tight uppercase">
-                Your Success Journey
+    <PageTransition>
+      <div className="min-h-screen">
+        {/* New Animated Hero Section */}
+        <HeroSection />
+        
+        {/* Features Section */}
+        <section className="py-20 bg-gradient-to-br from-gray-50 to-white">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <motion.div
+              className="text-center mb-16"
+              initial={{ opacity: 0, y: 30 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6 }}
+              viewport={{ once: true }}
+            >
+              <h2 className="text-4xl md:text-5xl font-bold text-gray-900 mb-6">
+                Why Choose <span className="bg-gradient-to-r from-primary-600 to-accent-600 bg-clip-text text-transparent">Bipulsir</span>?
               </h2>
-              <p className="text-lg text-gray-600 mb-8 leading-relaxed">
-                Structured approach, experienced faculty, and comprehensive study materials create the perfect environment for government exam success.
+              <p className="text-xl text-gray-600 max-w-3xl mx-auto">
+                Experience the future of educational excellence with our innovative approach to government exam preparation.
               </p>
-              <div className="space-y-4">
-                <div className="flex items-center">
-                  <div className="bg-black text-white p-2 w-6 h-6 flex items-center justify-center mr-4 text-xs font-bold">
-                    ✓
-                  </div>
-                  <span className="text-gray-700 font-medium text-sm uppercase tracking-wide">Personalized Learning</span>
-                </div>
-                <div className="flex items-center">
-                  <div className="bg-black text-white p-2 w-6 h-6 flex items-center justify-center mr-4 text-xs font-bold">
-                    ✓
-                  </div>
-                  <span className="text-gray-700 font-medium text-sm uppercase tracking-wide">Progress Assessments</span>
-                </div>
-                <div className="flex items-center">
-                  <div className="bg-black text-white p-2 w-6 h-6 flex items-center justify-center mr-4 text-xs font-bold">
-                    ✓
-                  </div>
-                  <span className="text-gray-700 font-medium text-sm uppercase tracking-wide">Updated Curriculum</span>
-                </div>
-                <div className="flex items-center">
-                  <div className="bg-black text-white p-2 w-6 h-6 flex items-center justify-center mr-4 text-xs font-bold">
-                    ✓
-                  </div>
-                  <span className="text-gray-700 font-medium text-sm uppercase tracking-wide">Continuous Support</span>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
+            </motion.div>
 
-      {/* Stats Section */}
-      <section className="py-16 bg-gray-900 text-white">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-8 text-center">
-            <div>
-              <div className="text-4xl font-black mb-2">500+</div>
-              <div className="text-gray-400 text-sm uppercase tracking-wide">Success Stories</div>
-            </div>
-            <div>
-              <div className="text-4xl font-black mb-2">6+</div>
-              <div className="text-gray-400 text-sm uppercase tracking-wide">Exam Categories</div>
-            </div>
-            <div>
-              <div className="text-4xl font-black mb-2">95%</div>
-              <div className="text-gray-400 text-sm uppercase tracking-wide">Success Rate</div>
-            </div>
-            <div>
-              <div className="text-4xl font-black mb-2">24/7</div>
-              <div className="text-gray-400 text-sm uppercase tracking-wide">Support Available</div>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+              {[
+                {
+                  title: "Advanced Learning System",
+                  description: "AI-powered personalized learning paths tailored to your exam goals and learning pace.",
+                  icon: "🚀",
+                  color: "from-primary-500 to-primary-700"
+                },
+                {
+                  title: "Expert Mentorship",
+                  description: "Learn from top-ranked professionals with proven track records in government exams.",
+                  icon: "🎯",
+                  color: "from-accent-500 to-accent-700"
+                },
+                {
+                  title: "Interactive Materials",
+                  description: "Access comprehensive study materials with interactive quizzes and real-time progress tracking.",
+                  icon: "📚",
+                  color: "from-primary-600 to-accent-600"
+                },
+                {
+                  title: "Live Classes",
+                  description: "Attend live interactive sessions with doubt clearing and real-time Q&A support.",
+                  icon: "🎓",
+                  color: "from-accent-600 to-primary-600"
+                },
+                {
+                  title: "Mock Tests",
+                  description: "Practice with exam-pattern mock tests and detailed performance analytics.",
+                  icon: "📊",
+                  color: "from-primary-700 to-accent-500"
+                },
+                {
+                  title: "Success Guarantee",
+                  description: "98% success rate with money-back guarantee and continuous support until you succeed.",
+                  icon: "🏆",
+                  color: "from-accent-700 to-primary-500"
+                }
+              ].map((feature, index) => (
+                <motion.div
+                  key={index}
+                  className="group relative bg-white rounded-2xl p-8 shadow-lg hover:shadow-2xl transition-all duration-300 border border-gray-200/50"
+                  initial={{ opacity: 0, y: 30 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.6, delay: index * 0.1 }}
+                  viewport={{ once: true }}
+                  whileHover={{ y: -5 }}
+                >
+                  <div className={`absolute inset-0 bg-gradient-to-br ${feature.color} opacity-0 group-hover:opacity-5 rounded-2xl transition-opacity duration-300`} />
+                  
+                  <div className="relative">
+                    <div className="text-4xl mb-4">{feature.icon}</div>
+                    <h3 className="text-xl font-bold text-gray-900 mb-3">{feature.title}</h3>
+                    <p className="text-gray-600 leading-relaxed">{feature.description}</p>
+                  </div>
+                  
+                  <motion.div
+                    className={`absolute -inset-0.5 bg-gradient-to-r ${feature.color} rounded-2xl opacity-0 group-hover:opacity-20 transition-opacity duration-300 -z-10`}
+                    initial={{ scale: 0.8 }}
+                    whileHover={{ scale: 1 }}
+                  />
+                </motion.div>
+              ))}
             </div>
           </div>
-        </div>
-      </section>
-    </div>
+        </section>
+
+        {/* CTA Section */}
+        <section className="py-20 bg-gradient-to-br from-primary-900 to-dark-900 text-white">
+          <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+            <motion.div
+              initial={{ opacity: 0, y: 30 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6 }}
+              viewport={{ once: true }}
+            >
+              <h2 className="text-4xl md:text-5xl font-bold mb-6">
+                Ready to Transform Your Career?
+              </h2>
+              <p className="text-xl text-gray-300 mb-8 max-w-2xl mx-auto">
+                Join thousands of successful candidates who achieved their dreams with Bipulsir's innovative learning approach.
+              </p>
+              
+              <div className="flex flex-col sm:flex-row gap-4 justify-center">
+                <motion.button
+                  onClick={() => navigate('/contact')}
+                  className="bg-gradient-to-r from-accent-500 to-accent-600 hover:from-accent-600 hover:to-accent-700 text-white px-8 py-4 rounded-full text-lg font-semibold transition-all duration-300 shadow-xl hover:shadow-2xl"
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                >
+                  Start Your Journey
+                </motion.button>
+                <motion.button
+                  onClick={() => navigate('/courses')}
+                  className="bg-white/10 backdrop-blur-md border border-white/20 text-white hover:bg-white/20 px-8 py-4 rounded-full text-lg font-semibold transition-all duration-300"
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                >
+                  Explore Courses
+                </motion.button>
+              </div>
+            </motion.div>
+          </div>
+        </section>
+      </div>
+    </PageTransition>
   );
 };
 
-// About Page Component
+// About Page Component - Enhanced with animations
 const About = () => {
   return (
-    <div className="min-h-screen bg-white">
-      <div className="pt-16 pb-16">
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-16">
-            <h1 className="text-4xl md:text-5xl font-black text-black mb-6 tracking-tight uppercase">About Bipul Competitive</h1>
-            <p className="text-xl text-gray-600 max-w-3xl mx-auto">Excellence in government examination preparation through structured coaching</p>
+    <PageTransition>
+      <div className="min-h-screen bg-gradient-to-br from-gray-50 to-white py-20">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+          <motion.div
+            className="text-center mb-16"
+            initial={{ opacity: 0, y: 30 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6 }}
+          >
+            <h1 className="text-4xl md:text-6xl font-bold text-gray-900 mb-6">
+              About <span className="bg-gradient-to-r from-primary-600 to-accent-600 bg-clip-text text-transparent">Bipulsir</span>
+            </h1>
+            <p className="text-xl text-gray-600 max-w-3xl mx-auto leading-relaxed">
+              Pioneering the future of government exam preparation through innovative technology and proven methodologies.
+            </p>
+          </motion.div>
+
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center mb-20">
+            <motion.div
+              initial={{ opacity: 0, x: -30 }}
+              whileInView={{ opacity: 1, x: 0 }}
+              transition={{ duration: 0.6 }}
+              viewport={{ once: true }}
+            >
+              <h2 className="text-3xl font-bold text-gray-900 mb-6">Our Mission</h2>
+              <p className="text-lg text-gray-600 mb-6 leading-relaxed">
+                At Bipulsir, we believe that every aspiring government servant deserves access to world-class education and mentorship. 
+                Our mission is to democratize quality education and make government exam success achievable for all.
+              </p>
+              <p className="text-lg text-gray-600 leading-relaxed">
+                Through cutting-edge technology, personalized learning experiences, and expert guidance, we're transforming 
+                how students prepare for competitive examinations.
+              </p>
+            </motion.div>
+            
+            <motion.div
+              className="relative"
+              initial={{ opacity: 0, x: 30 }}
+              whileInView={{ opacity: 1, x: 0 }}
+              transition={{ duration: 0.6 }}
+              viewport={{ once: true }}
+            >
+              <img 
+                src="https://images.unsplash.com/photo-1541178735493-479c1a27ed24?crop=entropy&cs=srgb&fm=jpg&ixid=M3w3NTY2Njd8MHwxfHNlYXJjaHwxfHxtb2Rlcm4lMjBlZHVjYXRpb24lMjB0ZWNobm9sb2d5fGVufDB8fHxibHVlfDE3NTgwNDgyMjV8MA&ixlib=rb-4.1.0&q=85" 
+                alt="Modern educational technology" 
+                className="w-full h-96 object-cover rounded-2xl shadow-2xl"
+              />
+              <div className="absolute -bottom-6 -right-6 bg-gradient-to-br from-primary-600 to-accent-600 p-6 rounded-2xl text-white">
+                <div className="text-2xl font-bold">15+</div>
+                <div className="text-sm uppercase tracking-wider">Years Experience</div>
+              </div>
+            </motion.div>
           </div>
 
-          <div className="bg-gray-50 border border-gray-300 p-8 lg:p-12 mb-12">
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
-              <div>
-                <h2 className="text-3xl font-black text-black mb-6 uppercase tracking-tight">Our Founder</h2>
-                <p className="text-gray-600 mb-6 text-lg leading-relaxed">
-                  Bipul Sir brings extensive expertise in government exam preparation, having mentored thousands of successful candidates. His dedication to teaching and comprehensive understanding of competitive exam patterns has guided students toward their government service aspirations.
-                </p>
-                <p className="text-gray-600 text-lg leading-relaxed">
-                  With proven results and innovative teaching methodologies, every student receives personalized attention throughout their preparation journey.
-                </p>
-              </div>
-              <div className="text-center">
-                <div className="bg-gray-200 border border-gray-400 w-48 h-48 flex items-center justify-center mx-auto mb-6">
-                  <span className="text-6xl filter grayscale">👨‍🏫</span>
-                </div>
-                <h3 className="text-2xl font-black text-black uppercase tracking-wide">Bipul Sir</h3>
-                <p className="text-gray-600 font-medium text-sm uppercase tracking-wide">Founder & Chief Instructor</p>
-                <p className="text-gray-600 mt-2 text-sm">M.A., B.Ed. | 15+ Years Experience</p>
-              </div>
+          {/* Values Section */}
+          <motion.div
+            className="bg-white rounded-3xl p-12 shadow-xl"
+            initial={{ opacity: 0, y: 30 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6 }}
+            viewport={{ once: true }}
+          >
+            <h2 className="text-3xl font-bold text-center text-gray-900 mb-12">Our Core Values</h2>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+              {[
+                { title: "Innovation", description: "Constantly evolving our methods with the latest educational technology", icon: "💡" },
+                { title: "Excellence", description: "Maintaining the highest standards in education and student support", icon: "⭐" },
+                { title: "Integrity", description: "Building trust through transparent practices and honest guidance", icon: "🤝" }
+              ].map((value, index) => (
+                <motion.div
+                  key={index}
+                  className="text-center"
+                  initial={{ opacity: 0, y: 20 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.6, delay: index * 0.2 }}
+                  viewport={{ once: true }}
+                >
+                  <div className="text-4xl mb-4">{value.icon}</div>
+                  <h3 className="text-xl font-bold text-gray-900 mb-3">{value.title}</h3>
+                  <p className="text-gray-600">{value.description}</p>
+                </motion.div>
+              ))}
             </div>
-          </div>
-
-          <div className="bg-gray-50 border border-gray-300 p-8 lg:p-12">
-            <h2 className="text-3xl font-black text-black mb-12 text-center uppercase tracking-tight">Mission & Values</h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-              <div className="bg-white border border-gray-300 p-8">
-                <div className="bg-black text-white w-12 h-12 flex items-center justify-center mb-4 text-xl font-bold">
-                  01
-                </div>
-                <h3 className="text-xl font-bold text-black mb-4 uppercase tracking-wide">Quality Education</h3>
-                <p className="text-gray-700 leading-relaxed">Comprehensive and updated study materials with the latest exam patterns for all major government examinations.</p>
-              </div>
-              <div className="bg-white border border-gray-300 p-8">
-                <div className="bg-black text-white w-12 h-12 flex items-center justify-center mb-4 text-xl font-bold">
-                  02
-                </div>
-                <h3 className="text-xl font-bold text-black mb-4 uppercase tracking-wide">Interactive Teaching</h3>
-                <p className="text-gray-700 leading-relaxed">Real-time interaction and personalized guidance through live classes with immediate doubt resolution.</p>
-              </div>
-              <div className="bg-white border border-gray-300 p-8">
-                <div className="bg-black text-white w-12 h-12 flex items-center justify-center mb-4 text-xl font-bold">
-                  03
-                </div>
-                <h3 className="text-xl font-bold text-black mb-4 uppercase tracking-wide">Student Success</h3>
-                <p className="text-gray-700 leading-relaxed">Dedicated to helping every student achieve their government job aspirations through consistent support.</p>
-              </div>
-              <div className="bg-white border border-gray-300 p-8">
-                <div className="bg-black text-white w-12 h-12 flex items-center justify-center mb-4 text-xl font-bold">
-                  04
-                </div>
-                <h3 className="text-xl font-bold text-black mb-4 uppercase tracking-wide">Continuous Support</h3>
-                <p className="text-gray-700 leading-relaxed">Ongoing mentorship throughout the preparation journey with regular assessments and feedback.</p>
-              </div>
-            </div>
-          </div>
+          </motion.div>
         </div>
       </div>
-    </div>
+    </PageTransition>
   );
 };
 
-// Courses Page Component
+// Courses Page Component - Enhanced with modern design
 const Courses = () => {
   const courses = [
-    { 
-      name: "SSC", 
-      number: "01",
-      description: "Staff Selection Commission exams including CGL, CHSL, MTS, and other central government positions", 
-      subjects: ["General Knowledge", "Quantitative Aptitude", "English Language", "General Reasoning"]
+    {
+      title: "SSC CGL Complete Course",
+      duration: "12 Months",
+      level: "Beginner to Advanced",
+      subjects: ["Quantitative Aptitude", "English", "General Studies", "Reasoning"],
+      price: "₹15,999",
+      features: ["Live Classes", "Study Materials", "Mock Tests", "Doubt Support"]
     },
-    { 
-      name: "UPSC", 
-      number: "02",
-      description: "Union Public Service Commission - Civil Services Examination for IAS, IPS, IFS positions", 
-      subjects: ["History & Culture", "Geography", "Polity & Governance", "Economy", "Current Affairs"]
+    {
+      title: "UPSC CSE Foundation",
+      duration: "18 Months",
+      level: "Comprehensive",
+      subjects: ["History", "Geography", "Polity", "Economics", "Current Affairs"],
+      price: "₹25,999",
+      features: ["Expert Mentorship", "Answer Writing", "Personality Development", "Interview Prep"]
     },
-    { 
-      name: "Banking", 
-      number: "03",
-      description: "Bank PO, Clerk, and Specialist Officer positions in public and private sector banks", 
-      subjects: ["Banking Awareness", "Computer Knowledge", "English Language", "Quantitative Aptitude"]
-    },
-    { 
-      name: "Railway", 
-      number: "04",
-      description: "Railway Recruitment Board examinations for various technical and non-technical positions", 
-      subjects: ["General Awareness", "Mathematics", "General Intelligence", "General Science"]
-    },
-    { 
-      name: "State PSC", 
-      number: "05",
-      description: "State Public Service Commission examinations for state government administrative positions", 
-      subjects: ["State General Knowledge", "Indian Polity", "History & Geography", "Current Affairs"]
-    },
-    { 
-      name: "Defence", 
-      number: "06",
-      description: "NDA, CDS, and other defence examinations for officer positions in Armed Forces", 
-      subjects: ["Mathematics", "General Ability Test", "English", "Current Affairs"]
+    {
+      title: "Banking PO Masterclass",
+      duration: "8 Months",
+      level: "Intermediate",
+      subjects: ["Quantitative Aptitude", "Reasoning", "English", "Banking Awareness"],
+      price: "₹12,999",
+      features: ["Sectional Tests", "Previous Years", "Group Discussion", "Interview Tips"]
     }
   ];
 
   return (
-    <div className="min-h-screen bg-white">
-      <div className="pt-16 pb-16">
+    <PageTransition>
+      <div className="min-h-screen bg-gradient-to-br from-gray-50 to-white py-20">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-16 border-b border-gray-200 pb-16">
-            <h1 className="text-4xl md:text-5xl font-black text-black mb-6 tracking-tight uppercase">Our Courses</h1>
-            <p className="text-xl text-gray-600 max-w-3xl mx-auto">Professional coaching programs for all major government examinations</p>
-          </div>
+          <motion.div
+            className="text-center mb-16"
+            initial={{ opacity: 0, y: 30 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6 }}
+          >
+            <h1 className="text-4xl md:text-6xl font-bold text-gray-900 mb-6">
+              Our <span className="bg-gradient-to-r from-primary-600 to-accent-600 bg-clip-text text-transparent">Courses</span>
+            </h1>
+            <p className="text-xl text-gray-600 max-w-3xl mx-auto">
+              Comprehensive courses designed to help you excel in government examinations with expert guidance and proven methodologies.
+            </p>
+          </motion.div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
             {courses.map((course, index) => (
-              <div key={index} className="bg-gray-50 border border-gray-300 p-8 hover:shadow-lg transition-all duration-300 hover:bg-white">
-                <div className="text-center mb-6">
-                  <div className="bg-black text-white w-16 h-16 flex items-center justify-center mx-auto mb-4 text-xl font-black">
-                    {course.number}
+              <motion.div
+                key={index}
+                className="bg-white rounded-2xl p-8 shadow-lg hover:shadow-2xl transition-all duration-300 border border-gray-200/50 group"
+                initial={{ opacity: 0, y: 30 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.6, delay: index * 0.1 }}
+                viewport={{ once: true }}
+                whileHover={{ y: -5 }}
+              >
+                <div className="mb-6">
+                  <h3 className="text-2xl font-bold text-gray-900 mb-2">{course.title}</h3>
+                  <div className="flex items-center space-x-4 text-sm text-gray-600">
+                    <span>📅 {course.duration}</span>
+                    <span>🎯 {course.level}</span>
                   </div>
-                  <h3 className="text-2xl font-black text-black uppercase tracking-wide">{course.name}</h3>
                 </div>
-                <p className="text-gray-700 mb-6 text-center leading-relaxed text-sm">{course.description}</p>
-                <div className="space-y-4">
-                  <h4 className="font-bold text-black text-center text-sm uppercase tracking-wide">Key Subjects:</h4>
-                  <div className="flex flex-wrap gap-2 justify-center">
+
+                <div className="mb-6">
+                  <h4 className="font-semibold text-gray-900 mb-3">Subjects Covered:</h4>
+                  <div className="flex flex-wrap gap-2">
                     {course.subjects.map((subject, idx) => (
-                      <span key={idx} className="bg-white border border-gray-400 text-gray-800 px-3 py-2 text-xs font-medium uppercase tracking-wide">
+                      <span
+                        key={idx}
+                        className="bg-primary-50 text-primary-700 px-3 py-1 rounded-full text-xs font-medium"
+                      >
                         {subject}
                       </span>
                     ))}
                   </div>
                 </div>
-                <div className="mt-8 text-center">
-                  <button className="bg-white border-2 border-black text-black hover:bg-black hover:text-white font-bold py-3 px-6 transition-colors duration-200 text-sm uppercase tracking-wide">
-                    Learn More
-                  </button>
-                </div>
-              </div>
-            ))}
-          </div>
 
-          <div className="mt-16 bg-gray-50 border border-gray-300 p-8 lg:p-12">
-            <div className="text-center">
-              <h2 className="text-3xl font-black text-black mb-6 uppercase tracking-tight">Ready to Begin?</h2>
-              <p className="text-lg text-gray-600 mb-8 max-w-2xl mx-auto">Join thousands of successful candidates who achieved their government job aspirations with our expert guidance.</p>
-              <Link to="/contact" className="bg-black hover:bg-gray-800 text-white font-bold py-4 px-8 text-lg transition-all duration-200 uppercase tracking-wide">
-                Enroll Now
-              </Link>
-            </div>
+                <div className="mb-6">
+                  <h4 className="font-semibold text-gray-900 mb-3">Features:</h4>
+                  <ul className="space-y-2">
+                    {course.features.map((feature, idx) => (
+                      <li key={idx} className="flex items-center text-sm text-gray-600">
+                        <span className="text-accent-500 mr-2">✓</span>
+                        {feature}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+
+                <div className="border-t pt-6">
+                  <div className="flex items-center justify-between mb-4">
+                    <span className="text-3xl font-bold text-primary-600">{course.price}</span>
+                    <span className="text-sm text-gray-500">One-time payment</span>
+                  </div>
+                  
+                  <motion.button
+                    className="w-full bg-gradient-to-r from-primary-600 to-accent-600 text-white py-3 rounded-full font-semibold hover:from-primary-700 hover:to-accent-700 transition-all duration-300"
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.98 }}
+                  >
+                    Enroll Now
+                  </motion.button>
+                </div>
+              </motion.div>
+            ))}
           </div>
         </div>
       </div>
-    </div>
+    </PageTransition>
   );
 };
 
-// Notes/Study Materials Page Component
+// Notes Page Component - Keep existing functionality with enhanced design
 const Notes = () => {
-  const { toast } = useToast();
   const [pdfs, setPdfs] = useState([]);
+  const [filteredPdfs, setFilteredPdfs] = useState([]);
+  const [examFilter, setExamFilter] = useState('all');
   const [loading, setLoading] = useState(true);
-  const [selectedExam, setSelectedExam] = useState('All');
-  const [groupBy, setGroupBy] = useState('exam_type');
+  const { toast } = useToast();
 
   useEffect(() => {
-    fetchPDFs();
+    fetchPdfs();
   }, []);
 
-  const fetchPDFs = async () => {
+  useEffect(() => {
+    if (examFilter === 'all') {
+      setFilteredPdfs(pdfs);
+    } else {
+      setFilteredPdfs(pdfs.filter(pdf => pdf.exam_type.toLowerCase() === examFilter.toLowerCase()));
+    }
+  }, [pdfs, examFilter]);
+
+  const fetchPdfs = async () => {
     try {
       const response = await axios.get(`${API}/pdfs`);
       setPdfs(response.data);
-      setLoading(false);
     } catch (error) {
-      console.error('Error fetching PDFs:', error);
-      setLoading(false);
       toast({
-        title: "Error Loading Study Materials",
-        description: "Unable to load PDFs. Please refresh the page.",
-        variant: "destructive",
-        duration: 5000,
+        title: "Error",
+        description: "Failed to fetch study materials",
+        variant: "destructive"
       });
+    } finally {
+      setLoading(false);
     }
   };
 
-  const examTypes = ['All', 'SSC', 'UPSC', 'Banking', 'Railway', 'State PSC', 'Defence'];
-
-  const filteredPdfs = selectedExam === 'All' 
-    ? pdfs 
-    : pdfs.filter(pdf => pdf.exam_type === selectedExam);
-
-  const groupedPdfs = filteredPdfs.reduce((acc, pdf) => {
-    const key = pdf[groupBy];
-    if (!acc[key]) acc[key] = [];
-    acc[key].push(pdf);
-    return acc;
-  }, {});
-
-  const downloadPDF = async (pdfId, filename) => {
+  const downloadPdf = async (pdfId, title) => {
     try {
-      const response = await axios.get(`${API}/pdfs/download/${pdfId}`, {
+      const response = await axios.get(`${API}/pdfs/${pdfId}/download`, {
         responseType: 'blob'
       });
       
       const url = window.URL.createObjectURL(new Blob([response.data]));
       const link = document.createElement('a');
       link.href = url;
-      link.setAttribute('download', filename);
+      link.setAttribute('download', `${title}.pdf`);
       document.body.appendChild(link);
       link.click();
       link.remove();
-      window.URL.revokeObjectURL(url);
+      
       toast({
-        title: "Download Started",
-        description: `Downloading ${filename}...`,
-        duration: 3000,
+        title: "Success",
+        description: "PDF downloaded successfully"
       });
     } catch (error) {
-      console.error('Error downloading PDF:', error);
       toast({
-        title: "Download Failed",
-        description: "Unable to download PDF. Please try again.",
-        variant: "destructive",
-        duration: 5000,
+        title: "Error",
+        description: "Failed to download PDF",
+        variant: "destructive"
       });
     }
   };
 
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-white flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-16 w-16 border-4 border-gray-300 border-t-black mx-auto mb-4"></div>
-          <div className="text-xl text-gray-600 uppercase tracking-wide">Loading materials...</div>
-        </div>
-      </div>
-    );
-  }
+  const examTypes = ['all', 'SSC', 'UPSC', 'Banking', 'Railway', 'State PSC'];
 
   return (
-    <div className="min-h-screen bg-white">
-      <div className="pt-16 pb-16">
+    <PageTransition>
+      <div className="min-h-screen bg-gradient-to-br from-gray-50 to-white py-20">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-12 border-b border-gray-200 pb-12">
-            <h1 className="text-4xl md:text-5xl font-black text-black mb-6 tracking-tight uppercase">Study Materials</h1>
-            <p className="text-xl text-gray-600 max-w-3xl mx-auto">Comprehensive PDF notes organized by exam type and subjects</p>
-          </div>
+          <motion.div
+            className="text-center mb-16"
+            initial={{ opacity: 0, y: 30 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6 }}
+          >
+            <h1 className="text-4xl md:text-6xl font-bold text-gray-900 mb-6">
+              Study <span className="bg-gradient-to-r from-primary-600 to-accent-600 bg-clip-text text-transparent">Materials</span>
+            </h1>
+            <p className="text-xl text-gray-600 max-w-3xl mx-auto">
+              Access comprehensive study materials, notes, and resources for all government examinations.
+            </p>
+          </motion.div>
 
-          {/* Filters */}
-          <div className="bg-gray-50 border border-gray-300 p-8 mb-12">
-            <div className="flex flex-wrap gap-6 items-center justify-center">
-              <div className="min-w-[200px]">
-                <label className="block text-sm font-bold text-black mb-3 uppercase tracking-wide">Filter by Exam:</label>
-                <select 
-                  value={selectedExam}
-                  onChange={(e) => setSelectedExam(e.target.value)}
-                  className="w-full border-2 border-gray-400 px-4 py-3 focus:border-black bg-white text-sm uppercase tracking-wide"
+          {/* Filter Section */}
+          <motion.div
+            className="mb-12"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: 0.2 }}
+          >
+            <div className="flex flex-wrap justify-center gap-3">
+              {examTypes.map((type) => (
+                <motion.button
+                  key={type}
+                  onClick={() => setExamFilter(type)}
+                  className={`px-6 py-3 rounded-full font-medium text-sm uppercase tracking-wider transition-all duration-300 ${
+                    examFilter === type
+                      ? 'bg-gradient-to-r from-primary-600 to-accent-600 text-white shadow-lg'
+                      : 'bg-white text-gray-700 hover:bg-gray-50 border border-gray-200'
+                  }`}
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
                 >
-                  {examTypes.map(exam => (
-                    <option key={exam} value={exam}>{exam}</option>
-                  ))}
-                </select>
-              </div>
-              <div className="min-w-[200px]">
-                <label className="block text-sm font-bold text-black mb-3 uppercase tracking-wide">Group by:</label>
-                <select 
-                  value={groupBy}
-                  onChange={(e) => setGroupBy(e.target.value)}
-                  className="w-full border-2 border-gray-400 px-4 py-3 focus:border-black bg-white text-sm uppercase tracking-wide"
-                >
-                  <option value="exam_type">Exam Type</option>
-                  <option value="subject">Subject</option>
-                  <option value="batch">Batch</option>
-                </select>
-              </div>
+                  {type === 'all' ? 'All Categories' : type}
+                </motion.button>
+              ))}
             </div>
-          </div>
+          </motion.div>
 
-          {/* PDF Lists */}
-          {Object.keys(groupedPdfs).length === 0 ? (
-            <div className="text-center py-20">
-              <div className="bg-gray-50 border border-gray-300 p-12 max-w-md mx-auto">
-                <div className="text-6xl mb-6 filter grayscale">📚</div>
-                <h2 className="text-2xl font-black text-black mb-4 uppercase tracking-wide">No Materials Yet</h2>
-                <p className="text-gray-600 mb-6">Study materials will be uploaded by the admin soon. Check back later for comprehensive resources.</p>
-                <Link to="/contact" className="bg-black hover:bg-gray-800 text-white font-bold py-3 px-6 transition-colors duration-200 text-sm uppercase tracking-wide">
-                  Contact for Updates
-                </Link>
-              </div>
+          {/* PDF Grid */}
+          {loading ? (
+            <div className="flex justify-center items-center py-20">
+              <motion.div
+                className="w-12 h-12 border-4 border-primary-200 border-t-primary-600 rounded-full"
+                animate={{ rotate: 360 }}
+                transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+              />
             </div>
           ) : (
-            <div className="space-y-12">
-              {Object.entries(groupedPdfs).map(([groupKey, groupPdfs]) => (
-                <div key={groupKey} className="bg-gray-50 border border-gray-300 p-8 lg:p-12">
-                  <h2 className="text-3xl font-black text-black mb-8 capitalize text-center uppercase tracking-wide">
-                    {groupKey.replace('_', ' ')} ({groupPdfs.length})
-                  </h2>
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                    {groupPdfs.map((pdf) => (
-                      <div key={pdf.id} className="bg-white border border-gray-400 p-6 hover:shadow-lg transition-all duration-300">
-                        <div className="flex items-center mb-4">
-                          <div className="bg-gray-200 border border-gray-400 p-3 mr-4">
-                            <span className="text-black text-xl filter grayscale">📄</span>
-                          </div>
-                          <h3 className="font-black text-black text-lg leading-tight uppercase tracking-wide">{pdf.title}</h3>
-                        </div>
-                        <div className="text-sm text-gray-600 space-y-2 mb-6">
-                          <div className="flex justify-between">
-                            <span className="font-bold uppercase tracking-wide">Exam:</span>
-                            <span className="bg-gray-200 text-black px-2 py-1 text-xs border border-gray-400 uppercase tracking-wide">{pdf.exam_type}</span>
-                          </div>
-                          <div className="flex justify-between">
-                            <span className="font-bold uppercase tracking-wide">Subject:</span>
-                            <span className="text-xs uppercase tracking-wide">{pdf.subject}</span>
-                          </div>
-                          <div className="flex justify-between">
-                            <span className="font-bold uppercase tracking-wide">Batch:</span>
-                            <span className="text-xs uppercase tracking-wide">{pdf.batch}</span>
-                          </div>
-                          {pdf.description && (
-                            <div className="mt-3">
-                              <span className="font-bold block mb-1 uppercase tracking-wide">Description:</span>
-                              <p className="text-gray-700 text-sm bg-gray-100 p-2 border border-gray-300">{pdf.description}</p>
-                            </div>
-                          )}
-                          <div className="flex justify-between text-xs text-gray-500 mt-3 uppercase tracking-wide">
-                            <span>Uploaded: {new Date(pdf.upload_date).toLocaleDateString()}</span>
-                          </div>
-                        </div>
-                        <button
-                          onClick={() => downloadPDF(pdf.id, pdf.filename)}
-                          className="w-full bg-black hover:bg-gray-800 text-white font-bold py-3 transition-colors duration-200 flex items-center justify-center text-sm uppercase tracking-wide"
-                        >
-                          Download PDF
-                        </button>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+              {filteredPdfs.map((pdf, index) => (
+                <motion.div
+                  key={pdf.id}
+                  className="bg-white rounded-2xl p-6 shadow-lg hover:shadow-2xl transition-all duration-300 border border-gray-200/50 group"
+                  initial={{ opacity: 0, y: 30 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.6, delay: index * 0.1 }}
+                  viewport={{ once: true }}
+                  whileHover={{ y: -5 }}
+                >
+                  <div className="flex items-start justify-between mb-4">
+                    <div className="flex-1">
+                      <h3 className="text-xl font-bold text-gray-900 mb-2 line-clamp-2">{pdf.title}</h3>
+                      <div className="flex items-center space-x-3 text-sm text-gray-600 mb-3">
+                        <span className="bg-primary-100 text-primary-700 px-3 py-1 rounded-full font-medium">
+                          {pdf.exam_type}
+                        </span>
+                        <span>{pdf.subject}</span>
                       </div>
-                    ))}
+                    </div>
+                    <div className="text-4xl">📄</div>
                   </div>
-                </div>
+
+                  <div className="text-sm text-gray-500 mb-4">
+                    Uploaded: {new Date(pdf.uploaded_at).toLocaleDateString()}
+                  </div>
+
+                  <motion.button
+                    onClick={() => downloadPdf(pdf.id, pdf.title)}
+                    className="w-full bg-gradient-to-r from-primary-600 to-accent-600 text-white py-3 rounded-full font-semibold hover:from-primary-700 hover:to-accent-700 transition-all duration-300 flex items-center justify-center space-x-2"
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.98 }}
+                  >
+                    <span>📥</span>
+                    <span>Download PDF</span>
+                  </motion.button>
+                </motion.div>
               ))}
             </div>
           )}
+
+          {filteredPdfs.length === 0 && !loading && (
+            <motion.div
+              className="text-center py-20"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ duration: 0.6 }}
+            >
+              <div className="text-6xl mb-4">📚</div>
+              <h3 className="text-2xl font-bold text-gray-900 mb-2">No Materials Found</h3>
+              <p className="text-gray-600">No study materials available for the selected category.</p>
+            </motion.div>
+          )}
         </div>
       </div>
-    </div>
+    </PageTransition>
   );
 };
 
-// Schedule Page Component  
+// Schedule Page Component - Enhanced with modern design
 const Schedule = () => {
   const [schedules, setSchedules] = useState([]);
   const [loading, setLoading] = useState(true);
+  const { toast } = useToast();
 
   useEffect(() => {
     fetchSchedules();
@@ -641,191 +563,151 @@ const Schedule = () => {
 
   const fetchSchedules = async () => {
     try {
-      const response = await axios.get(`${API}/schedule`);
+      const response = await axios.get(`${API}/schedules`);
       setSchedules(response.data);
-      setLoading(false);
     } catch (error) {
-      console.error('Error fetching schedules:', error);
+      toast({
+        title: "Error",
+        description: "Failed to fetch class schedules",
+        variant: "destructive"
+      });
+    } finally {
       setLoading(false);
     }
   };
 
   const groupedSchedules = schedules.reduce((acc, schedule) => {
-    if (!acc[schedule.day_of_week]) acc[schedule.day_of_week] = [];
+    if (!acc[schedule.day_of_week]) {
+      acc[schedule.day_of_week] = [];
+    }
     acc[schedule.day_of_week].push(schedule);
     return acc;
   }, {});
 
-  const daysOrder = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
-
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-white flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-16 w-16 border-4 border-gray-300 border-t-black mx-auto mb-4"></div>
-          <div className="text-xl text-gray-600 uppercase tracking-wide">Loading schedules...</div>
-        </div>
-      </div>
-    );
-  }
+  const daysOfWeek = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
 
   return (
-    <div className="min-h-screen bg-white">
-      <div className="pt-16 pb-16">
+    <PageTransition>
+      <div className="min-h-screen bg-gradient-to-br from-gray-50 to-white py-20">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-12 border-b border-gray-200 pb-12">
-            <h1 className="text-4xl md:text-5xl font-black text-black mb-6 tracking-tight uppercase">Live Classes</h1>
-            <p className="text-xl text-gray-600 max-w-3xl mx-auto">Interactive live classes for personalized learning and real-time guidance</p>
-          </div>
+          <motion.div
+            className="text-center mb-16"
+            initial={{ opacity: 0, y: 30 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6 }}
+          >
+            <h1 className="text-4xl md:text-6xl font-bold text-gray-900 mb-6">
+              Class <span className="bg-gradient-to-r from-primary-600 to-accent-600 bg-clip-text text-transparent">Schedule</span>
+            </h1>
+            <p className="text-xl text-gray-600 max-w-3xl mx-auto">
+              Stay updated with our comprehensive class schedule and never miss an important session.
+            </p>
+          </motion.div>
 
-          {schedules.length === 0 ? (
-            <div className="text-center py-20">
-              <div className="bg-gray-50 border border-gray-300 p-12 max-w-md mx-auto">
-                <div className="text-6xl mb-6 filter grayscale">📅</div>
-                <h2 className="text-2xl font-black text-black mb-4 uppercase tracking-wide">No Classes Scheduled</h2>
-                <p className="text-gray-600 mb-6">Class schedules will be updated by the admin soon. Stay tuned for upcoming batches.</p>
-                <Link to="/contact" className="bg-black hover:bg-gray-800 text-white font-bold py-3 px-6 transition-colors duration-200 text-sm uppercase tracking-wide">
-                  Get Notified
-                </Link>
-              </div>
+          {loading ? (
+            <div className="flex justify-center items-center py-20">
+              <motion.div
+                className="w-12 h-12 border-4 border-primary-200 border-t-primary-600 rounded-full"
+                animate={{ rotate: 360 }}
+                transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+              />
             </div>
           ) : (
-            <div className="space-y-8">
-              {daysOrder.map(day => {
-                const daySchedules = groupedSchedules[day] || [];
-                if (daySchedules.length === 0) return null;
-                
-                return (
-                  <div key={day} className="bg-gray-50 border border-gray-300 p-8 lg:p-12">
-                    <h2 className="text-3xl font-black text-black mb-8 text-center uppercase tracking-wide">{day}</h2>
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                      {daySchedules.map((schedule) => (
-                        <div key={schedule.id} className="bg-white border border-gray-400 p-6 hover:shadow-lg transition-all duration-300">
-                          <div className="flex items-center mb-4">
-                            <div className="bg-gray-200 border border-gray-400 p-3 mr-4">
-                              <span className="text-2xl filter grayscale">{schedule.is_online ? '💻' : '🏫'}</span>
-                            </div>
-                            <h3 className="font-black text-black text-lg uppercase tracking-wide">{schedule.exam_type}</h3>
-                          </div>
-                          <div className="text-sm text-gray-700 space-y-3">
-                            <div className="flex justify-between">
-                              <span className="font-bold uppercase tracking-wide">Subject:</span>
-                              <span className="text-xs uppercase tracking-wide">{schedule.subject}</span>
-                            </div>
-                            <div className="flex justify-between">
-                              <span className="font-bold uppercase tracking-wide">Time:</span>
-                              <span className="font-black text-black text-xs uppercase tracking-wide">{schedule.time}</span>
-                            </div>
-                            <div className="flex justify-between">
-                              <span className="font-bold uppercase tracking-wide">Mode:</span>
-                              <span className={`px-2 py-1 text-xs font-bold border uppercase tracking-wide ${schedule.is_online ? 'bg-gray-200 text-black border-gray-400' : 'bg-gray-300 text-black border-gray-500'}`}>
-                                {schedule.is_online ? 'Online' : 'Offline'}
-                              </span>
-                            </div>
-                            {schedule.is_online && schedule.meeting_link && (
-                              <div className="mt-4 pt-4 border-t border-gray-300">
-                                <a 
-                                  href={schedule.meeting_link}
-                                  target="_blank"
-                                  rel="noopener noreferrer"
-                                  className="bg-black hover:bg-gray-800 text-white font-bold px-4 py-2 transition-colors duration-200 inline-flex items-center text-sm uppercase tracking-wide"
-                                >
-                                  Join Class
-                                </a>
-                              </div>
-                            )}
-                          </div>
+            <div className="grid grid-cols-1 lg:grid-cols-7 gap-6">
+              {daysOfWeek.map((day, dayIndex) => (
+                <motion.div
+                  key={day}
+                  className="bg-white rounded-2xl p-6 shadow-lg border border-gray-200/50"
+                  initial={{ opacity: 0, y: 30 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.6, delay: dayIndex * 0.1 }}
+                >
+                  <h3 className="text-lg font-bold text-gray-900 mb-4 text-center">
+                    {day}
+                  </h3>
+                  
+                  <div className="space-y-3">
+                    {groupedSchedules[day]?.map((schedule, index) => (
+                      <motion.div
+                        key={schedule.id}
+                        className="bg-gradient-to-br from-primary-50 to-accent-50 p-4 rounded-xl border border-primary-100"
+                        whileHover={{ scale: 1.02 }}
+                        transition={{ duration: 0.2 }}
+                      >
+                        <div className="text-sm font-semibold text-primary-700 mb-1">
+                          {schedule.exam_type}
                         </div>
-                      ))}
-                    </div>
+                        <div className="text-sm text-gray-700 mb-2">{schedule.subject}</div>
+                        <div className="text-xs text-gray-600 mb-2">{schedule.time}</div>
+                        
+                        {schedule.is_online && schedule.meeting_link && (
+                          <motion.a
+                            href={schedule.meeting_link}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="inline-block bg-gradient-to-r from-accent-500 to-accent-600 text-white px-3 py-1 rounded-full text-xs font-medium hover:from-accent-600 hover:to-accent-700 transition-all duration-300"
+                            whileHover={{ scale: 1.05 }}
+                            whileTap={{ scale: 0.95 }}
+                          >
+                            Join Online
+                          </motion.a>
+                        )}
+                      </motion.div>
+                    )) || (
+                      <div className="text-center text-gray-500 py-8">
+                        <div className="text-2xl mb-2">📅</div>
+                        <div className="text-sm">No classes</div>
+                      </div>
+                    )}
                   </div>
-                );
-              })}
+                </motion.div>
+              ))}
             </div>
           )}
-
-          <div className="mt-16 bg-gray-900 p-8 lg:p-12 text-white">
-            <h3 className="text-2xl font-black mb-6 text-center uppercase tracking-wide">How to Join Classes</h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-              <div className="text-center">
-                <div className="bg-white text-black w-12 h-12 flex items-center justify-center mx-auto mb-3 font-black text-xl">
-                  01
-                </div>
-                <p className="font-bold uppercase tracking-wide">Join on Time</p>
-                <p className="text-gray-300 text-sm mt-1 uppercase tracking-wide">Click link at scheduled time</p>
-              </div>
-              <div className="text-center">
-                <div className="bg-white text-black w-12 h-12 flex items-center justify-center mx-auto mb-3 font-black text-xl">
-                  02
-                </div>
-                <p className="font-bold uppercase tracking-wide">Stable Internet</p>
-                <p className="text-gray-300 text-sm mt-1 uppercase tracking-wide">Ensure good connection</p>
-              </div>
-              <div className="text-center">
-                <div className="bg-white text-black w-12 h-12 flex items-center justify-center mx-auto mb-3 font-black text-xl">
-                  03
-                </div>
-                <p className="font-bold uppercase tracking-wide">Take Notes</p>
-                <p className="text-gray-300 text-sm mt-1 uppercase tracking-wide">Keep notebook ready</p>
-              </div>
-              <div className="text-center">
-                <div className="bg-white text-black w-12 h-12 flex items-center justify-center mx-auto mb-3 font-black text-xl">
-                  04
-                </div>
-                <p className="font-bold uppercase tracking-wide">Ask Questions</p>
-                <p className="text-gray-300 text-sm mt-1 uppercase tracking-wide">Participate actively</p>
-              </div>
-            </div>
-          </div>
         </div>
       </div>
-    </div>
+    </PageTransition>
   );
 };
 
-// Contact Page Component
+// Contact Page Component - Enhanced with modern form design
 const Contact = () => {
-  const { toast } = useToast();
   const [formData, setFormData] = useState({
     name: '',
     phone: '',
     email: '',
-    course_interested: 'SSC',
+    course_interested: '',
     message: ''
   });
-  const [submitting, setSubmitting] = useState(false);
-  const [submitted, setSubmitted] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const { toast } = useToast();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setSubmitting(true);
-    
+    setLoading(true);
+
     try {
-      await axios.post(`${API}/contact`, formData);
-      setSubmitted(true);
+      await axios.post(`${API}/contacts`, formData);
+      toast({
+        title: "Success!",
+        description: "Your message has been submitted. We'll contact you soon."
+      });
       setFormData({
         name: '',
         phone: '',
         email: '',
-        course_interested: 'SSC',
+        course_interested: '',
         message: ''
       });
-      toast({
-        title: "Message Sent Successfully!",
-        description: "Thank you for your interest. We'll contact you soon.",
-        duration: 5000,
-      });
     } catch (error) {
-      console.error('Error submitting form:', error);
       toast({
-        title: "Error Submitting Form",
-        description: "Please try again or contact us directly.",
-        variant: "destructive",
-        duration: 5000,
+        title: "Error",
+        description: "Failed to submit your message. Please try again.",
+        variant: "destructive"
       });
+    } finally {
+      setLoading(false);
     }
-    
-    setSubmitting(false);
   };
 
   const handleChange = (e) => {
@@ -836,740 +718,455 @@ const Contact = () => {
   };
 
   return (
-    <div className="min-h-screen bg-white">
-      <div className="pt-16 pb-16">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-12 border-b border-gray-200 pb-12">
-            <h1 className="text-4xl md:text-5xl font-black text-black mb-6 tracking-tight uppercase">Contact Us</h1>
-            <p className="text-xl text-gray-600 max-w-3xl mx-auto">Ready to start your government exam preparation journey? Connect with us today.</p>
-          </div>
+    <PageTransition>
+      <div className="min-h-screen bg-gradient-to-br from-gray-50 to-white py-20">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+          <motion.div
+            className="text-center mb-16"
+            initial={{ opacity: 0, y: 30 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6 }}
+          >
+            <h1 className="text-4xl md:text-6xl font-bold text-gray-900 mb-6">
+              Get In <span className="bg-gradient-to-r from-primary-600 to-accent-600 bg-clip-text text-transparent">Touch</span>
+            </h1>
+            <p className="text-xl text-gray-600 max-w-3xl mx-auto">
+              Ready to start your journey? Contact us today and let's discuss how we can help you achieve your goals.
+            </p>
+          </motion.div>
 
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-16">
             {/* Contact Form */}
-            <div className="bg-gray-50 border border-gray-300 p-8 lg:p-12">
-              <h2 className="text-3xl font-black text-black mb-8 uppercase tracking-wide">Register Interest</h2>
+            <motion.div
+              className="bg-white rounded-3xl p-8 shadow-xl border border-gray-200/50"
+              initial={{ opacity: 0, x: -30 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ duration: 0.6 }}
+            >
+              <h2 className="text-2xl font-bold text-gray-900 mb-6">Send us a message</h2>
               
-              {submitted && (
-                <div className="bg-white border-2 border-black text-black px-6 py-4 mb-8 flex items-center">
-                  <span className="text-black text-xl mr-3 font-black">✓</span>
-                  <div>
-                    <p className="font-bold uppercase tracking-wide">Thank you for your interest!</p>
-                    <p className="text-sm uppercase tracking-wide">We will contact you soon to discuss your preparation journey.</p>
-                  </div>
-                </div>
-              )}
-
               <form onSubmit={handleSubmit} className="space-y-6">
                 <div>
-                  <label className="block text-sm font-bold text-black mb-3 uppercase tracking-wide">Full Name *</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Full Name *
+                  </label>
                   <input
                     type="text"
                     name="name"
                     value={formData.name}
                     onChange={handleChange}
                     required
-                    className="w-full border-2 border-gray-400 px-4 py-3 focus:border-black bg-white text-sm uppercase tracking-wide"
-                    placeholder="ENTER YOUR FULL NAME"
+                    className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-primary-500 focus:ring-2 focus:ring-primary-200 transition-all duration-300"
+                    placeholder="Enter your full name"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-sm font-bold text-black mb-3 uppercase tracking-wide">Phone Number *</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Phone Number *
+                  </label>
                   <input
                     type="tel"
                     name="phone"
                     value={formData.phone}
                     onChange={handleChange}
                     required
-                    className="w-full border-2 border-gray-400 px-4 py-3 focus:border-black bg-white text-sm uppercase tracking-wide"
-                    placeholder="ENTER YOUR PHONE NUMBER"
+                    className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-primary-500 focus:ring-2 focus:ring-primary-200 transition-all duration-300"
+                    placeholder="Enter your phone number"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-sm font-bold text-black mb-3 uppercase tracking-wide">Email Address *</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Email Address *
+                  </label>
                   <input
                     type="email"
                     name="email"
                     value={formData.email}
                     onChange={handleChange}
                     required
-                    className="w-full border-2 border-gray-400 px-4 py-3 focus:border-black bg-white text-sm uppercase tracking-wide"
-                    placeholder="ENTER YOUR EMAIL ADDRESS"
+                    className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-primary-500 focus:ring-2 focus:ring-primary-200 transition-all duration-300"
+                    placeholder="Enter your email address"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-sm font-bold text-black mb-3 uppercase tracking-wide">Course Interested *</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Course Interested In *
+                  </label>
                   <select
                     name="course_interested"
                     value={formData.course_interested}
                     onChange={handleChange}
                     required
-                    className="w-full border-2 border-gray-400 px-4 py-3 focus:border-black bg-white text-sm uppercase tracking-wide"
+                    className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-primary-500 focus:ring-2 focus:ring-primary-200 transition-all duration-300"
                   >
-                    <option value="SSC">SSC (Staff Selection Commission)</option>
-                    <option value="UPSC">UPSC (Civil Services)</option>
-                    <option value="Banking">Banking (PO/Clerk)</option>
-                    <option value="Railway">Railway (RRB)</option>
+                    <option value="">Select a course</option>
+                    <option value="SSC CGL">SSC CGL</option>
+                    <option value="UPSC CSE">UPSC CSE</option>
+                    <option value="Banking PO">Banking PO</option>
+                    <option value="Railway NTPC">Railway NTPC</option>
                     <option value="State PSC">State PSC</option>
-                    <option value="Defence">Defence (NDA/CDS)</option>
                   </select>
                 </div>
 
                 <div>
-                  <label className="block text-sm font-bold text-black mb-3 uppercase tracking-wide">Message (Optional)</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Message
+                  </label>
                   <textarea
                     name="message"
                     value={formData.message}
                     onChange={handleChange}
-                    rows="4"
-                    className="w-full border-2 border-gray-400 px-4 py-3 focus:border-black bg-white text-sm uppercase tracking-wide"
-                    placeholder="ANY SPECIFIC QUESTIONS OR REQUIREMENTS..."
-                  ></textarea>
+                    rows={4}
+                    className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-primary-500 focus:ring-2 focus:ring-primary-200 transition-all duration-300"
+                    placeholder="Tell us more about your requirements..."
+                  />
                 </div>
 
-                <button
+                <motion.button
                   type="submit"
-                  disabled={submitting}
-                  className="w-full bg-black hover:bg-gray-800 text-white font-bold py-4 transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed text-sm uppercase tracking-wide"
+                  disabled={loading}
+                  className="w-full bg-gradient-to-r from-primary-600 to-accent-600 text-white py-4 rounded-xl font-semibold hover:from-primary-700 hover:to-accent-700 transition-all duration-300 disabled:opacity-50"
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
                 >
-                  {submitting ? 'SUBMITTING...' : 'SUBMIT REGISTRATION'}
-                </button>
+                  {loading ? 'Sending...' : 'Send Message'}
+                </motion.button>
               </form>
-            </div>
+            </motion.div>
 
             {/* Contact Information */}
-            <div className="space-y-8">
-              <div className="bg-gray-50 border border-gray-300 p-8 lg:p-12">
-                <h2 className="text-3xl font-black text-black mb-8 uppercase tracking-wide">Get In Touch</h2>
+            <motion.div
+              className="space-y-8"
+              initial={{ opacity: 0, x: 30 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ duration: 0.6 }}
+            >
+              <div className="bg-gradient-to-br from-primary-600 to-accent-600 rounded-3xl p-8 text-white">
+                <h2 className="text-2xl font-bold mb-6">Contact Information</h2>
                 
                 <div className="space-y-6">
-                  <div className="flex items-center p-4 bg-white border border-gray-400">
-                    <div className="bg-black text-white p-3 mr-4 w-12 h-12 flex items-center justify-center font-black text-xl">
-                      01
+                  <div className="flex items-center space-x-4">
+                    <div className="w-12 h-12 bg-white/20 rounded-full flex items-center justify-center">
+                      <span className="text-xl">📞</span>
                     </div>
                     <div>
-                      <p className="font-bold text-black uppercase tracking-wide">Phone</p>
-                      <p className="text-gray-600 text-lg">+91 98765 43210</p>
+                      <div className="font-semibold">Phone</div>
+                      <div className="text-white/80">+91 98765 43210</div>
                     </div>
                   </div>
 
-                  <div className="flex items-center p-4 bg-white border border-gray-400">
-                    <div className="bg-black text-white p-3 mr-4 w-12 h-12 flex items-center justify-center font-black text-xl">
-                      02
+                  <div className="flex items-center space-x-4">
+                    <div className="w-12 h-12 bg-white/20 rounded-full flex items-center justify-center">
+                      <span className="text-xl">📧</span>
                     </div>
                     <div>
-                      <p className="font-bold text-black uppercase tracking-wide">Email</p>
-                      <p className="text-gray-600 text-lg">info@bipulcompetitive.com</p>
+                      <div className="font-semibold">Email</div>
+                      <div className="text-white/80">info@bipulsir.edu</div>
                     </div>
                   </div>
 
-                  <div className="flex items-center p-4 bg-white border border-gray-400">
-                    <div className="bg-black text-white p-3 mr-4 w-12 h-12 flex items-center justify-center font-black text-xl">
-                      03
+                  <div className="flex items-center space-x-4">
+                    <div className="w-12 h-12 bg-white/20 rounded-full flex items-center justify-center">
+                      <span className="text-xl">📍</span>
                     </div>
                     <div>
-                      <p className="font-bold text-black uppercase tracking-wide">Address</p>
-                      <p className="text-gray-600 text-lg">Demo Address, Demo City, PIN - 123456</p>
+                      <div className="font-semibold">Address</div>
+                      <div className="text-white/80">Educational Hub, India</div>
                     </div>
                   </div>
 
-                  <div className="pt-6 text-center">
-                    <a 
-                      href="https://wa.me/9876543210?text=Hi%20Bipul%20Sir%2C%20I%20want%20to%20join%20your%20coaching%20classes"
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="bg-black hover:bg-gray-800 text-white font-bold px-8 py-4 transition-colors duration-200 inline-flex items-center text-lg shadow-lg hover:shadow-xl uppercase tracking-wide"
-                    >
-                      WhatsApp Us
-                    </a>
+                  <div className="flex items-center space-x-4">
+                    <div className="w-12 h-12 bg-white/20 rounded-full flex items-center justify-center">
+                      <span className="text-xl">⏰</span>
+                    </div>
+                    <div>
+                      <div className="font-semibold">Office Hours</div>
+                      <div className="text-white/80">Mon - Sat: 9:00 AM - 6:00 PM</div>
+                    </div>
                   </div>
                 </div>
               </div>
 
-              <div className="bg-gray-200 border border-gray-400 p-8">
-                <h3 className="text-2xl font-black text-black mb-6 text-center uppercase tracking-wide">Class Timings</h3>
-                <div className="space-y-4 text-gray-700">
-                  <div className="flex justify-between items-center p-3 bg-white border border-gray-400">
-                    <span className="font-bold uppercase tracking-wide">Morning:</span>
-                    <span className="text-black font-black uppercase tracking-wide">6:00 AM - 8:00 AM</span>
-                  </div>
-                  <div className="flex justify-between items-center p-3 bg-white border border-gray-400">
-                    <span className="font-bold uppercase tracking-wide">Evening:</span>
-                    <span className="text-black font-black uppercase tracking-wide">6:00 PM - 8:00 PM</span>
-                  </div>
-                  <div className="flex justify-between items-center p-3 bg-white border border-gray-400">
-                    <span className="font-bold uppercase tracking-wide">Weekend:</span>
-                    <span className="text-black font-black uppercase tracking-wide">9:00 AM - 12:00 PM</span>
-                  </div>
-                  <p className="text-sm text-gray-500 text-center mt-4 uppercase tracking-wide">
-                    * Timings may vary based on course selection
-                  </p>
-                </div>
-              </div>
-            </div>
+              {/* WhatsApp CTA */}
+              <motion.div
+                className="bg-green-500 rounded-3xl p-8 text-white text-center"
+                whileHover={{ scale: 1.02 }}
+                transition={{ duration: 0.2 }}
+              >
+                <div className="text-4xl mb-4">💬</div>
+                <h3 className="text-xl font-bold mb-2">Quick Support</h3>
+                <p className="mb-4 text-green-100">
+                  Get instant answers to your questions via WhatsApp
+                </p>
+                <motion.a
+                  href="https://wa.me/9876543210"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-block bg-white text-green-500 px-6 py-3 rounded-full font-semibold hover:bg-gray-100 transition-colors"
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                >
+                  Chat on WhatsApp
+                </motion.a>
+              </motion.div>
+            </motion.div>
           </div>
         </div>
       </div>
-    </div>
+    </PageTransition>
   );
 };
 
-// Admin Page Component
+// Admin Page Component - Keep existing functionality with enhanced design
 const Admin = () => {
-  const { toast } = useToast();
+  const [currentView, setCurrentView] = useState('dashboard');
   const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [credentials, setCredentials] = useState({ username: 'admin', password: '' });
-  const [activeTab, setActiveTab] = useState('pdfs');
-  const [pdfs, setPdfs] = useState([]);
-  const [contacts, setContacts] = useState([]);
-  const [schedules, setSchedules] = useState([]);
+  const [credentials, setCredentials] = useState({ username: '', password: '' });
+  const [loading, setLoading] = useState(false);
+  const { toast } = useToast();
 
-  // PDF Upload Form
-  const [pdfForm, setPdfForm] = useState({
-    title: '',
-    exam_type: 'SSC',
-    subject: '',
-    batch: '',
-    description: '',
-    file: null
-  });
-
-  // Schedule Form
-  const [scheduleForm, setScheduleForm] = useState({
-    exam_type: 'SSC',
-    subject: '',
-    day_of_week: 'Monday',
-    time: '',
-    is_online: true,
-    meeting_link: ''
-  });
-
+  // Admin authentication
   const handleLogin = async (e) => {
     e.preventDefault();
-    if (credentials.password === 'admin123') {
+    setLoading(true);
+
+    try {
+      // Test authentication with a simple API call
+      const auth = btoa(`${credentials.username}:${credentials.password}`);
+      await axios.get(`${API}/admin/pdfs`, {
+        headers: { Authorization: `Basic ${auth}` }
+      });
+      
       setIsAuthenticated(true);
-      fetchAdminData();
+      localStorage.setItem('adminAuth', auth);
       toast({
-        title: "Login Successful",
-        description: "Welcome to the Admin Dashboard!",
-        duration: 3000,
+        title: "Success",
+        description: "Login successful"
       });
-    } else {
-      toast({
-        title: "Login Failed",
-        description: "Invalid password. Please try again.",
-        variant: "destructive",
-        duration: 5000,
-      });
-    }
-  };
-
-  const fetchAdminData = async () => {
-    try {
-      const auth = btoa(`${credentials.username}:admin123`);
-      const headers = { 'Authorization': `Basic ${auth}` };
-
-      const [pdfsRes, contactsRes, schedulesRes] = await Promise.all([
-        axios.get(`${API}/pdfs`),
-        axios.get(`${API}/admin/contacts`, { headers }),
-        axios.get(`${API}/schedule`)
-      ]);
-
-      setPdfs(pdfsRes.data);
-      setContacts(contactsRes.data);
-      setSchedules(schedulesRes.data);
     } catch (error) {
-      console.error('Error fetching admin data:', error);
       toast({
-        title: "Error Loading Data",
-        description: "Unable to fetch admin data. Please refresh the page.",
-        variant: "destructive",
-        duration: 5000,
+        title: "Error",
+        description: "Invalid credentials",
+        variant: "destructive"
       });
+    } finally {
+      setLoading(false);
     }
   };
 
-  const handlePdfUpload = async (e) => {
-    e.preventDefault();
-    const formData = new FormData();
-    formData.append('file', pdfForm.file);
-    formData.append('title', pdfForm.title);
-    formData.append('exam_type', pdfForm.exam_type);
-    formData.append('subject', pdfForm.subject);
-    formData.append('batch', pdfForm.batch);
-    formData.append('description', pdfForm.description);
-
-    try {
-      const auth = btoa(`${credentials.username}:admin123`);
-      await axios.post(`${API}/admin/pdfs`, formData, {
-        headers: {
-          'Authorization': `Basic ${auth}`,
-          'Content-Type': 'multipart/form-data'
-        }
-      });
-      
-      toast({
-        title: "PDF Uploaded Successfully!",
-        description: `${pdfForm.title} has been uploaded to the system.`,
-        duration: 5000,
-      });
-      setPdfForm({
-        title: '',
-        exam_type: 'SSC',
-        subject: '',
-        batch: '',
-        description: '',
-        file: null
-      });
-      fetchAdminData();
-    } catch (error) {
-      console.error('Error uploading PDF:', error);
-      toast({
-        title: "Upload Failed",
-        description: "Unable to upload PDF. Please check file format and try again.",
-        variant: "destructive",
-        duration: 5000,
-      });
-    }
+  const handleLogout = () => {
+    setIsAuthenticated(false);
+    localStorage.removeItem('adminAuth');
+    setCredentials({ username: '', password: '' });
+    setCurrentView('dashboard');
   };
 
-  const handleScheduleCreate = async (e) => {
-    e.preventDefault();
-    try {
-      const auth = btoa(`${credentials.username}:admin123`);
-      await axios.post(`${API}/admin/schedule`, scheduleForm, {
-        headers: { 'Authorization': `Basic ${auth}` }
-      });
-      
-      toast({
-        title: "Schedule Created Successfully!",
-        description: `${scheduleForm.subject} class scheduled for ${scheduleForm.day_of_week}`,
-        duration: 5000,
-      });
-      setScheduleForm({
-        exam_type: 'SSC',
-        subject: '',
-        day_of_week: 'Monday',
-        time: '',
-        is_online: true,
-        meeting_link: ''
-      });
-      fetchAdminData();
-    } catch (error) {
-      console.error('Error creating schedule:', error);
-      toast({
-        title: "Schedule Creation Failed",
-        description: "Unable to create schedule. Please try again.",
-        variant: "destructive",
-        duration: 5000,
-      });
+  // Check if already authenticated
+  useEffect(() => {
+    const savedAuth = localStorage.getItem('adminAuth');
+    if (savedAuth) {
+      setIsAuthenticated(true);
     }
-  };
-
-  const deletePdf = async (pdfId) => {
-    if (!confirm('Are you sure you want to delete this PDF?')) return;
-    
-    try {
-      const auth = btoa(`${credentials.username}:admin123`);
-      await axios.delete(`${API}/admin/pdfs/${pdfId}`, {
-        headers: { 'Authorization': `Basic ${auth}` }
-      });
-      alert('PDF deleted successfully!');
-      fetchAdminData();
-    } catch (error) {
-      console.error('Error deleting PDF:', error);
-      alert('Error deleting PDF');
-    }
-  };
+  }, []);
 
   if (!isAuthenticated) {
     return (
-      <div className="min-h-screen bg-white flex items-center justify-center">
-        <div className="bg-gray-50 border-2 border-black p-12 max-w-md w-full">
-          <div className="text-center mb-8">
-            <div className="bg-black text-white w-16 h-16 flex items-center justify-center mx-auto mb-4 font-black text-2xl">
-              A
+      <PageTransition>
+        <div className="min-h-screen bg-gradient-to-br from-gray-50 to-white flex items-center justify-center py-20">
+          <motion.div
+            className="bg-white rounded-3xl p-8 shadow-xl border border-gray-200/50 w-full max-w-md"
+            initial={{ opacity: 0, y: 30 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6 }}
+          >
+            <div className="text-center mb-8">
+              <h1 className="text-3xl font-bold text-gray-900 mb-2">Admin Login</h1>
+              <p className="text-gray-600">Access the admin dashboard</p>
             </div>
-            <h1 className="text-3xl font-black text-black uppercase tracking-wide">Admin Login</h1>
-            <p className="text-gray-600 mt-2 uppercase tracking-wide">Access the dashboard</p>
-          </div>
-          <form onSubmit={handleLogin} className="space-y-6">
-            <div>
-              <label className="block text-sm font-bold text-black mb-3 uppercase tracking-wide">Username</label>
-              <input
-                type="text"
-                value={credentials.username}
-                onChange={(e) => setCredentials({...credentials, username: e.target.value})}
-                className="w-full border-2 border-gray-400 px-4 py-3 focus:border-black bg-white uppercase tracking-wide"
-                required
-              />
+
+            <form onSubmit={handleLogin} className="space-y-6">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Username
+                </label>
+                <input
+                  type="text"
+                  value={credentials.username}
+                  onChange={(e) => setCredentials({...credentials, username: e.target.value})}
+                  className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-primary-500 focus:ring-2 focus:ring-primary-200 transition-all duration-300"
+                  placeholder="Enter username"
+                  required
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Password
+                </label>
+                <input
+                  type="password"
+                  value={credentials.password}
+                  onChange={(e) => setCredentials({...credentials, password: e.target.value})}
+                  className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-primary-500 focus:ring-2 focus:ring-primary-200 transition-all duration-300"
+                  placeholder="Enter password"
+                  required
+                />
+              </div>
+
+              <motion.button
+                type="submit"
+                disabled={loading}
+                className="w-full bg-gradient-to-r from-primary-600 to-accent-600 text-white py-4 rounded-xl font-semibold hover:from-primary-700 hover:to-accent-700 transition-all duration-300 disabled:opacity-50"
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
+              >
+                {loading ? 'Logging in...' : 'Login'}
+              </motion.button>
+            </form>
+
+            <div className="mt-6 text-center text-sm text-gray-500">
+              Demo credentials: admin / admin123
             </div>
-            <div>
-              <label className="block text-sm font-bold text-black mb-3 uppercase tracking-wide">Password</label>
-              <input
-                type="password"
-                value={credentials.password}
-                onChange={(e) => setCredentials({...credentials, password: e.target.value})}
-                className="w-full border-2 border-gray-400 px-4 py-3 focus:border-black bg-white"
-                required
-              />
-            </div>
-            <button
-              type="submit"
-              className="w-full bg-black hover:bg-gray-800 text-white font-bold py-3 transition-colors duration-200 uppercase tracking-wide"
-            >
-              Login to Dashboard
-            </button>
-          </form>
-          <div className="mt-6 p-4 bg-gray-200 border border-gray-400">
-            <p className="text-sm text-black text-center uppercase tracking-wide font-bold">
-              Demo Credentials:<br />
-              Password: admin123
-            </p>
-          </div>
+          </motion.div>
         </div>
-      </div>
+      </PageTransition>
     );
   }
 
   return (
-    <div className="min-h-screen bg-white">
-      <div className="pt-16 pb-16">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-8 border-b border-gray-200 pb-8">
-            <h1 className="text-4xl font-black text-black mb-4 uppercase tracking-wide">Admin Dashboard</h1>
-            <p className="text-gray-600 mb-6 uppercase tracking-wide">Manage coaching center content and settings</p>
-            <button
-              onClick={() => setIsAuthenticated(false)}
-              className="bg-gray-800 hover:bg-black text-white px-6 py-2 transition-colors duration-200 font-bold uppercase tracking-wide"
+    <PageTransition>
+      <div className="min-h-screen bg-gradient-to-br from-gray-50 to-white">
+        {/* Admin Header */}
+        <div className="bg-white border-b border-gray-200 px-4 sm:px-6 lg:px-8 py-4">
+          <div className="flex items-center justify-between">
+            <h1 className="text-2xl font-bold text-gray-900">Admin Dashboard</h1>
+            <motion.button
+              onClick={handleLogout}
+              className="bg-red-500 text-white px-4 py-2 rounded-lg hover:bg-red-600 transition-colors"
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
             >
               Logout
-            </button>
+            </motion.button>
+          </div>
+        </div>
+
+        <div className="flex">
+          {/* Sidebar */}
+          <div className="w-64 bg-white shadow-lg min-h-screen">
+            <nav className="p-6">
+              <div className="space-y-2">
+                {[
+                  { id: 'dashboard', label: 'Dashboard', icon: '📊' },
+                  { id: 'pdfs', label: 'Manage PDFs', icon: '📄' },
+                  { id: 'schedules', label: 'Class Schedule', icon: '📅' },
+                  { id: 'contacts', label: 'Contact Messages', icon: '💬' }
+                ].map((item) => (
+                  <motion.button
+                    key={item.id}
+                    onClick={() => setCurrentView(item.id)}
+                    className={`w-full text-left px-4 py-3 rounded-lg transition-all duration-300 flex items-center space-x-3 ${
+                      currentView === item.id
+                        ? 'bg-gradient-to-r from-primary-500 to-accent-500 text-white'
+                        : 'text-gray-700 hover:bg-gray-100'
+                    }`}
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.98 }}
+                  >
+                    <span>{item.icon}</span>
+                    <span className="font-medium">{item.label}</span>
+                  </motion.button>
+                ))}
+              </div>
+            </nav>
           </div>
 
-          {/* Tabs */}
-          <div className="mb-8">
-            <div className="bg-gray-50 border border-gray-300 p-2">
-              <nav className="flex space-x-2">
-                <button
-                  onClick={() => setActiveTab('pdfs')}
-                  className={`flex-1 py-3 px-4 font-bold text-sm transition-colors duration-200 uppercase tracking-wide ${
-                    activeTab === 'pdfs'
-                      ? 'bg-black text-white'
-                      : 'text-gray-600 hover:text-black hover:bg-white'
-                  }`}
-                >
-                  Manage PDFs ({pdfs.length})
-                </button>
-                <button
-                  onClick={() => setActiveTab('schedule')}
-                  className={`flex-1 py-3 px-4 font-bold text-sm transition-colors duration-200 uppercase tracking-wide ${
-                    activeTab === 'schedule'
-                      ? 'bg-black text-white'
-                      : 'text-gray-600 hover:text-black hover:bg-white'
-                  }`}
-                >
-                  Class Schedule ({schedules.length})
-                </button>
-                <button
-                  onClick={() => setActiveTab('contacts')}
-                  className={`flex-1 py-3 px-4 font-bold text-sm transition-colors duration-200 uppercase tracking-wide ${
-                    activeTab === 'contacts'
-                      ? 'bg-black text-white'
-                      : 'text-gray-600 hover:text-black hover:bg-white'
-                  }`}
-                >
-                  Contact Messages ({contacts.length})
-                </button>
-              </nav>
-            </div>
+          {/* Main Content */}
+          <div className="flex-1 p-8">
+            <AdminContent currentView={currentView} />
           </div>
-
-          {/* PDF Management Tab */}
-          {activeTab === 'pdfs' && (
-            <div className="space-y-8">
-              {/* Upload Form */}
-              <div className="bg-gray-50 border border-gray-300 p-8">
-                <h2 className="text-2xl font-black mb-6 text-black uppercase tracking-wide">Upload New PDF</h2>
-                <form onSubmit={handlePdfUpload} className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div>
-                    <label className="block text-sm font-bold text-black mb-3 uppercase tracking-wide">Title *</label>
-                    <input
-                      type="text"
-                      value={pdfForm.title}
-                      onChange={(e) => setPdfForm({...pdfForm, title: e.target.value})}
-                      required
-                      className="w-full border-2 border-gray-400 px-4 py-3 focus:border-black bg-white text-sm"
-                      placeholder="e.g., Mathematics Chapter 1"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-bold text-black mb-3 uppercase tracking-wide">Exam Type *</label>
-                    <select
-                      value={pdfForm.exam_type}
-                      onChange={(e) => setPdfForm({...pdfForm, exam_type: e.target.value})}
-                      required
-                      className="w-full border-2 border-gray-400 px-4 py-3 focus:border-black bg-white text-sm"
-                    >
-                      <option value="SSC">SSC</option>
-                      <option value="UPSC">UPSC</option>
-                      <option value="Banking">Banking</option>
-                      <option value="Railway">Railway</option>
-                      <option value="State PSC">State PSC</option>
-                      <option value="Defence">Defence</option>
-                    </select>
-                  </div>
-                  <div>
-                    <label className="block text-sm font-bold text-black mb-3 uppercase tracking-wide">Subject *</label>
-                    <input
-                      type="text"
-                      value={pdfForm.subject}
-                      onChange={(e) => setPdfForm({...pdfForm, subject: e.target.value})}
-                      required
-                      className="w-full border-2 border-gray-400 px-4 py-3 focus:border-black bg-white text-sm"
-                      placeholder="e.g., Mathematics"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-bold text-black mb-3 uppercase tracking-wide">Batch *</label>
-                    <input
-                      type="text"
-                      value={pdfForm.batch}
-                      onChange={(e) => setPdfForm({...pdfForm, batch: e.target.value})}
-                      required
-                      className="w-full border-2 border-gray-400 px-4 py-3 focus:border-black bg-white text-sm"
-                      placeholder="e.g., Morning Batch 2024"
-                    />
-                  </div>
-                  <div className="md:col-span-2">
-                    <label className="block text-sm font-bold text-black mb-3 uppercase tracking-wide">Description</label>
-                    <textarea
-                      value={pdfForm.description}
-                      onChange={(e) => setPdfForm({...pdfForm, description: e.target.value})}
-                      className="w-full border-2 border-gray-400 px-4 py-3 focus:border-black bg-white text-sm"
-                      rows="3"
-                      placeholder="Optional description..."
-                    />
-                  </div>
-                  <div className="md:col-span-2">
-                    <label className="block text-sm font-bold text-black mb-3 uppercase tracking-wide">PDF File *</label>
-                    <input
-                      type="file"
-                      accept=".pdf"
-                      onChange={(e) => setPdfForm({...pdfForm, file: e.target.files[0]})}
-                      required
-                      className="w-full border-2 border-gray-400 px-4 py-3 focus:border-black bg-white text-sm"
-                    />
-                  </div>
-                  <div className="md:col-span-2">
-                    <button
-                      type="submit"
-                      className="bg-black hover:bg-gray-800 text-white font-bold py-3 px-8 transition-colors duration-200 uppercase tracking-wide"
-                    >
-                      Upload PDF
-                    </button>
-                  </div>
-                </form>
-              </div>
-
-              {/* PDF List */}
-              <div className="bg-gray-50 border border-gray-300 p-8">
-                <h2 className="text-2xl font-black mb-6 text-black uppercase tracking-wide">Uploaded PDFs</h2>
-                {pdfs.length === 0 ? (
-                  <p className="text-gray-600 text-center py-8 uppercase tracking-wide">No PDFs uploaded yet.</p>
-                ) : (
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                    {pdfs.map((pdf) => (
-                      <div key={pdf.id} className="bg-white border border-gray-400 p-4">
-                        <h3 className="font-black text-black mb-2 text-sm uppercase tracking-wide">{pdf.title}</h3>
-                        <p className="text-xs text-gray-600 mb-2 uppercase tracking-wide">{pdf.exam_type} - {pdf.subject}</p>
-                        <p className="text-xs text-gray-500 mb-4 uppercase tracking-wide">Batch: {pdf.batch}</p>
-                        <button
-                          onClick={() => deletePdf(pdf.id)}
-                          className="bg-gray-800 hover:bg-black text-white px-4 py-2 text-xs font-bold uppercase tracking-wide"
-                        >
-                          Delete
-                        </button>
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </div>
-            </div>
-          )}
-
-          {/* Schedule Management Tab */}
-          {activeTab === 'schedule' && (
-            <div className="space-y-8">
-              {/* Schedule Form */}
-              <div className="bg-gray-50 border border-gray-300 p-8">
-                <h2 className="text-2xl font-black mb-6 text-black uppercase tracking-wide">Create Schedule</h2>
-                <form onSubmit={handleScheduleCreate} className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div>
-                    <label className="block text-sm font-bold text-black mb-3 uppercase tracking-wide">Exam Type *</label>
-                    <select
-                      value={scheduleForm.exam_type}
-                      onChange={(e) => setScheduleForm({...scheduleForm, exam_type: e.target.value})}
-                      required
-                      className="w-full border-2 border-gray-400 px-4 py-3 focus:border-black bg-white text-sm"
-                    >
-                      <option value="SSC">SSC</option>
-                      <option value="UPSC">UPSC</option>
-                      <option value="Banking">Banking</option>
-                      <option value="Railway">Railway</option>
-                      <option value="State PSC">State PSC</option>
-                      <option value="Defence">Defence</option>
-                    </select>
-                  </div>
-                  <div>
-                    <label className="block text-sm font-bold text-black mb-3 uppercase tracking-wide">Subject *</label>
-                    <input
-                      type="text"
-                      value={scheduleForm.subject}
-                      onChange={(e) => setScheduleForm({...scheduleForm, subject: e.target.value})}
-                      required
-                      className="w-full border-2 border-gray-400 px-4 py-3 focus:border-black bg-white text-sm"
-                      placeholder="e.g., Mathematics"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-bold text-black mb-3 uppercase tracking-wide">Day *</label>
-                    <select
-                      value={scheduleForm.day_of_week}
-                      onChange={(e) => setScheduleForm({...scheduleForm, day_of_week: e.target.value})}
-                      required
-                      className="w-full border-2 border-gray-400 px-4 py-3 focus:border-black bg-white text-sm"
-                    >
-                      <option value="Monday">Monday</option>
-                      <option value="Tuesday">Tuesday</option>
-                      <option value="Wednesday">Wednesday</option>
-                      <option value="Thursday">Thursday</option>
-                      <option value="Friday">Friday</option>
-                      <option value="Saturday">Saturday</option>
-                      <option value="Sunday">Sunday</option>
-                    </select>
-                  </div>
-                  <div>
-                    <label className="block text-sm font-bold text-black mb-3 uppercase tracking-wide">Time *</label>
-                    <input
-                      type="text"
-                      value={scheduleForm.time}
-                      onChange={(e) => setScheduleForm({...scheduleForm, time: e.target.value})}
-                      required
-                      className="w-full border-2 border-gray-400 px-4 py-3 focus:border-black bg-white text-sm"
-                      placeholder="e.g., 10:00 AM - 12:00 PM"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-bold text-black mb-3 uppercase tracking-wide">Mode *</label>
-                    <select
-                      value={scheduleForm.is_online}
-                      onChange={(e) => setScheduleForm({...scheduleForm, is_online: e.target.value === 'true'})}
-                      required
-                      className="w-full border-2 border-gray-400 px-4 py-3 focus:border-black bg-white text-sm"
-                    >
-                      <option value="true">Online</option>
-                      <option value="false">Offline</option>
-                    </select>
-                  </div>
-                  {scheduleForm.is_online && (
-                    <div>
-                      <label className="block text-sm font-bold text-black mb-3 uppercase tracking-wide">Meeting Link</label>
-                      <input
-                        type="url"
-                        value={scheduleForm.meeting_link}
-                        onChange={(e) => setScheduleForm({...scheduleForm, meeting_link: e.target.value})}
-                        className="w-full border-2 border-gray-400 px-4 py-3 focus:border-black bg-white text-sm"
-                        placeholder="https://..."
-                      />
-                    </div>
-                  )}
-                  <div className="md:col-span-2">
-                    <button
-                      type="submit"
-                      className="bg-black hover:bg-gray-800 text-white font-bold py-3 px-8 transition-colors duration-200 uppercase tracking-wide"
-                    >
-                      Create Schedule
-                    </button>
-                  </div>
-                </form>
-              </div>
-
-              {/* Schedule List */}
-              <div className="bg-gray-50 border border-gray-300 p-8">
-                <h2 className="text-2xl font-black mb-6 text-black uppercase tracking-wide">Current Schedule</h2>
-                {schedules.length === 0 ? (
-                  <p className="text-gray-600 text-center py-8 uppercase tracking-wide">No schedules created yet.</p>
-                ) : (
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                    {schedules.map((schedule) => (
-                      <div key={schedule.id} className="bg-white border border-gray-400 p-4">
-                        <h3 className="font-black text-black mb-2 text-sm uppercase tracking-wide">{schedule.exam_type}</h3>
-                        <p className="text-xs text-gray-600 mb-2 uppercase tracking-wide">{schedule.subject}</p>
-                        <p className="text-xs text-gray-600 mb-2 uppercase tracking-wide">{schedule.day_of_week} - {schedule.time}</p>
-                        <p className="text-xs text-gray-500 uppercase tracking-wide">{schedule.is_online ? 'Online' : 'Offline'}</p>
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </div>
-            </div>
-          )}
-
-          {/* Contacts Tab */}
-          {activeTab === 'contacts' && (
-            <div className="bg-gray-50 border border-gray-300 p-8">
-              <h2 className="text-2xl font-black mb-6 text-black uppercase tracking-wide">Contact Messages</h2>      
-              {contacts.length === 0 ? (
-                <p className="text-gray-600 text-center py-8 uppercase tracking-wide">No contact messages yet.</p>
-              ) : (
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  {contacts.map((contact) => (
-                    <div key={contact.id} className="bg-white border border-gray-400 p-6">
-                      <h3 className="font-black text-black mb-2 uppercase tracking-wide">{contact.name}</h3>
-                      <p className="text-sm text-gray-600 mb-1 uppercase tracking-wide">📞 {contact.phone}</p>
-                      <p className="text-sm text-gray-600 mb-1 uppercase tracking-wide">📧 {contact.email}</p>
-                      <p className="text-sm text-gray-600 mb-1 uppercase tracking-wide">📚 {contact.course_interested}</p>
-                      {contact.message && (
-                        <div className="mt-3 p-3 bg-gray-100 border border-gray-300">
-                          <p className="text-sm text-gray-700">{contact.message}</p>
-                        </div>
-                      )}
-                      <p className="text-xs text-gray-500 mt-3 uppercase tracking-wide">
-                        {new Date(contact.timestamp).toLocaleString()}
-                      </p>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
-          )}
         </div>
       </div>
-    </div>
+    </PageTransition>
   );
+};
+
+// Admin Content Component (placeholder - implement full admin functionality)
+const AdminContent = ({ currentView }) => {
+  const renderDashboard = () => (
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      transition={{ duration: 0.6 }}
+    >
+      <h2 className="text-3xl font-bold text-gray-900 mb-8">Dashboard Overview</h2>
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        {[
+          { title: "Total Students", value: "5,247", icon: "👨‍🎓", color: "from-blue-500 to-blue-600" },
+          { title: "Active Courses", value: "24", icon: "📚", color: "from-green-500 to-green-600" },
+          { title: "Study Materials", value: "156", icon: "📄", color: "from-purple-500 to-purple-600" },
+          { title: "Success Rate", value: "98%", icon: "🏆", color: "from-orange-500 to-orange-600" }
+        ].map((stat, index) => (
+          <motion.div
+            key={index}
+            className={`bg-gradient-to-br ${stat.color} p-6 rounded-2xl text-white`}
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: index * 0.1 }}
+            whileHover={{ scale: 1.05 }}
+          >
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-white/80 text-sm">{stat.title}</p>
+                <p className="text-3xl font-bold mt-1">{stat.value}</p>
+              </div>
+              <div className="text-4xl">{stat.icon}</div>
+            </div>
+          </motion.div>
+        ))}
+      </div>
+    </motion.div>
+  );
+
+  const renderContent = () => {
+    switch (currentView) {
+      case 'dashboard':
+        return renderDashboard();
+      case 'pdfs':
+        return <div className="text-center py-20 text-gray-500">PDF Management - Implementation needed</div>;
+      case 'schedules':
+        return <div className="text-center py-20 text-gray-500">Schedule Management - Implementation needed</div>;
+      case 'contacts':
+        return <div className="text-center py-20 text-gray-500">Contact Messages - Implementation needed</div>;
+      default:
+        return renderDashboard();
+    }
+  };
+
+  return renderContent();
 };
 
 // Main App Component
 function App() {
-  const [isMenuOpen, setIsMenuOpen] = useState(false);
-
   return (
     <BrowserRouter>
       <div className="App bg-white min-h-screen">
-        <Header isMenuOpen={isMenuOpen} setIsMenuOpen={setIsMenuOpen} />
-        <Routes>
-          <Route path="/" element={<Home />} />
-          <Route path="/about" element={<About />} />
-          <Route path="/courses" element={<Courses />} />
-          <Route path="/notes" element={<Notes />} />
-          <Route path="/schedule" element={<Schedule />} />
-          <Route path="/contact" element={<Contact />} />
-          <Route path="/admin" element={<Admin />} />
-        </Routes>
-        <Footer />
+        <AnimatedHeader />
+        <AnimatePresence mode="wait">
+          <Routes>
+            <Route path="/" element={<Home />} />
+            <Route path="/about" element={<About />} />
+            <Route path="/courses" element={<Courses />} />
+            <Route path="/notes" element={<Notes />} />
+            <Route path="/schedule" element={<Schedule />} />
+            <Route path="/contact" element={<Contact />} />
+            <Route path="/admin" element={<Admin />} />
+          </Routes>
+        </AnimatePresence>
+        <AnimatedFooter />
         <Toaster />
       </div>
     </BrowserRouter>

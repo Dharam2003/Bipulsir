@@ -34,7 +34,7 @@ api_router = APIRouter(prefix="/api")
 
 # Simple admin authentication
 security = HTTPBasic()
-ADMIN_PASSWORD = "admin123"  # Simple password for admin
+ADMIN_PASSWORD = os.environ.get('ADMIN_PASSWORD', 'admin123')  # Simple password for admin
 
 def verify_admin(credentials: HTTPBasicCredentials = Depends(security)):
     is_correct_password = secrets.compare_digest(credentials.password, ADMIN_PASSWORD)

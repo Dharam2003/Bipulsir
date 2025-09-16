@@ -466,9 +466,19 @@ const Notes = () => {
       link.click();
       link.remove();
       window.URL.revokeObjectURL(url);
+      toast({
+        title: "Download Started",
+        description: `Downloading ${filename}...`,
+        duration: 3000,
+      });
     } catch (error) {
       console.error('Error downloading PDF:', error);
-      alert('Error downloading PDF');
+      toast({
+        title: "Download Failed",
+        description: "Unable to download PDF. Please try again.",
+        variant: "destructive",
+        duration: 5000,
+      });
     }
   };
 

@@ -430,6 +430,12 @@ const Notes = () => {
     } catch (error) {
       console.error('Error fetching PDFs:', error);
       setLoading(false);
+      toast({
+        title: "Error Loading Study Materials",
+        description: "Unable to load PDFs. Please refresh the page.",
+        variant: "destructive",
+        duration: 5000,
+      });
     }
   };
 

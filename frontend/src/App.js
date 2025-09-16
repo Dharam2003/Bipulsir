@@ -767,9 +767,19 @@ const Contact = () => {
         course_interested: 'SSC',
         message: ''
       });
+      toast({
+        title: "Message Sent Successfully!",
+        description: "Thank you for your interest. We'll contact you soon.",
+        duration: 5000,
+      });
     } catch (error) {
       console.error('Error submitting form:', error);
-      alert('Error submitting form. Please try again.');
+      toast({
+        title: "Error Submitting Form",
+        description: "Please try again or contact us directly.",
+        variant: "destructive",
+        duration: 5000,
+      });
     }
     
     setSubmitting(false);

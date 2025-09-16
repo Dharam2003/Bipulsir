@@ -13,7 +13,7 @@ import base64
 from datetime import datetime
 
 # Backend URL from environment
-BACKEND_URL = "https://studyportal-bipul.preview.emergentagent.com/api"
+BACKEND_URL = "https://2403bf67-434e-4673-b523-65892e574eeb.preview.emergentagent.com/api"
 
 # Admin credentials
 ADMIN_USERNAME = "admin"

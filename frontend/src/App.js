@@ -935,7 +935,7 @@ const Admin = () => {
 
     try {
       // Test authentication with a simple API call
-      const auth = btoa(`${credentials.username}:${credentials.password}`);
+      const auth = window.btoa(`${credentials.username}:${credentials.password}`);
       await axios.get(`${API}/admin/pdfs`, {
         headers: { Authorization: `Basic ${auth}` }
       });

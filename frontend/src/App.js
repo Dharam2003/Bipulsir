@@ -1026,8 +1026,18 @@ const Admin = () => {
     if (credentials.password === 'admin123') {
       setIsAuthenticated(true);
       fetchAdminData();
+      toast({
+        title: "Login Successful",
+        description: "Welcome to the Admin Dashboard!",
+        duration: 3000,
+      });
     } else {
-      alert('Invalid password');
+      toast({
+        title: "Login Failed",
+        description: "Invalid password. Please try again.",
+        variant: "destructive",
+        duration: 5000,
+      });
     }
   };
 

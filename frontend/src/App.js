@@ -1070,7 +1070,11 @@ const Admin = () => {
         }
       });
       
-      alert('PDF uploaded successfully!');
+      toast({
+        title: "PDF Uploaded Successfully!",
+        description: `${pdfForm.title} has been uploaded to the system.`,
+        duration: 5000,
+      });
       setPdfForm({
         title: '',
         exam_type: 'SSC',
@@ -1082,7 +1086,12 @@ const Admin = () => {
       fetchAdminData();
     } catch (error) {
       console.error('Error uploading PDF:', error);
-      alert('Error uploading PDF');
+      toast({
+        title: "Upload Failed",
+        description: "Unable to upload PDF. Please check file format and try again.",
+        variant: "destructive",
+        duration: 5000,
+      });
     }
   };
 

@@ -993,6 +993,7 @@ const Contact = () => {
 
 // Simple Admin Page Component
 const Admin = () => {
+  const { toast } = useToast();
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [credentials, setCredentials] = useState({ username: 'admin', password: '' });
   const [activeTab, setActiveTab] = useState('pdfs');

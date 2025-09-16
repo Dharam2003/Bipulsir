@@ -1103,7 +1103,11 @@ const Admin = () => {
         headers: { 'Authorization': `Basic ${auth}` }
       });
       
-      alert('Schedule created successfully!');
+      toast({
+        title: "Schedule Created Successfully!",
+        description: `${scheduleForm.subject} class scheduled for ${scheduleForm.day_of_week}`,
+        duration: 5000,
+      });
       setScheduleForm({
         exam_type: 'SSC',
         subject: '',
@@ -1115,7 +1119,12 @@ const Admin = () => {
       fetchAdminData();
     } catch (error) {
       console.error('Error creating schedule:', error);
-      alert('Error creating schedule');
+      toast({
+        title: "Schedule Creation Failed",
+        description: "Unable to create schedule. Please try again.",
+        variant: "destructive",
+        duration: 5000,
+      });
     }
   };
 

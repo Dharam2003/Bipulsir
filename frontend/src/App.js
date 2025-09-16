@@ -1058,6 +1058,12 @@ const Admin = () => {
       setSchedules(schedulesRes.data);
     } catch (error) {
       console.error('Error fetching admin data:', error);
+      toast({
+        title: "Error Loading Data",
+        description: "Unable to fetch admin data. Please refresh the page.",
+        variant: "destructive",
+        duration: 5000,
+      });
     }
   };
 

@@ -9,7 +9,7 @@ const Footer = () => {
           {/* Brand Section */}
           <div className="col-span-1 md:col-span-2">
             <h3 className="text-3xl font-bold mb-4">
-              Bipul <span className="text-blue-400">Competitive</span>
+              Bipul <span className="text-gray-400">Competitive</span>
             </h3>
             <p className="text-gray-300 mb-6 text-lg leading-relaxed max-w-md">
               Empowering government exam aspirants with comprehensive coaching, 

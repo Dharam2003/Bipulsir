@@ -742,6 +742,7 @@ const Schedule = () => {
 
 // Contact Page Component
 const Contact = () => {
+  const { toast } = useToast();
   const [formData, setFormData] = useState({
     name: '',
     phone: '',

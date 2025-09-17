@@ -1060,7 +1060,6 @@ const Admin = () => {
             <nav className="p-6">
               <div className="space-y-2">
                 {[
-                  { id: 'dashboard', label: 'Dashboard', icon: '📊' },
                   { id: 'pdfs', label: 'Manage PDFs', icon: '📄' },
                   { id: 'schedules', label: 'Class Schedule', icon: '📅' },
                   { id: 'contacts', label: 'Contact Messages', icon: '💬' }

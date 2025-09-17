@@ -410,7 +410,7 @@ const Notes = () => {
 
   const downloadPdf = async (pdfId, title) => {
     try {
-      const response = await axios.get(`${API}/pdfs/${pdfId}/download`, {
+      const response = await axios.get(`${API}/pdfs/download/${pdfId}`, {
         responseType: 'blob'
       });
       

@@ -563,7 +563,7 @@ const Schedule = () => {
 
   const fetchSchedules = async () => {
     try {
-      const response = await axios.get(`${API}/schedules`);
+      const response = await axios.get(`${API}/schedule`);
       setSchedules(response.data);
     } catch (error) {
       toast({

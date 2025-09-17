@@ -961,7 +961,7 @@ const Admin = () => {
     setIsAuthenticated(false);
     localStorage.removeItem('adminAuth');
     setCredentials({ username: '', password: '' });
-    setCurrentView('dashboard');
+    setCurrentView('pdfs');
   };
 
   // Check if already authenticated

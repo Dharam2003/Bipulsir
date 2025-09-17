@@ -922,7 +922,7 @@ const Contact = () => {
 
 // Admin Page Component - Keep existing functionality with enhanced design
 const Admin = () => {
-  const [currentView, setCurrentView] = useState('dashboard');
+  const [currentView, setCurrentView] = useState('pdfs');
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [credentials, setCredentials] = useState({ username: '', password: '' });
   const [loading, setLoading] = useState(false);

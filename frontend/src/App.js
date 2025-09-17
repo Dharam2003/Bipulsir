@@ -1093,55 +1093,542 @@ const Admin = () => {
   );
 };
 
-// Admin Content Component (placeholder - implement full admin functionality)
+// Admin Content Component - Fully implemented admin functionality
 const AdminContent = ({ currentView }) => {
-  const renderDashboard = () => (
+  const [pdfs, setPdfs] = useState([]);
+  const [contacts, setContacts] = useState([]);
+  const [schedules, setSchedules] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [uploadLoading, setUploadLoading] = useState(false);
+  const { toast } = useToast();
+
+  // Get auth header
+  const getAuthHeader = () => {
+    const auth = localStorage.getItem('adminAuth');
+    return auth ? { 'Authorization': `Basic ${auth}` } : {};
+  };
+
+  // PDF Management Functions
+  const fetchPdfs = async () => {
+    try {
+      setLoading(true);
+      const response = await axios.get(`${API}/pdfs`);
+      setPdfs(response.data);
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to fetch PDFs",
+        variant: "destructive"
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handlePdfUpload = async (event) => {
+    event.preventDefault();
+    const formData = new FormData(event.target);
+    
+    try {
+      setUploadLoading(true);
+      await axios.post(`${API}/admin/pdfs`, formData, {
+        headers: {
+          ...getAuthHeader(),
+          'Content-Type': 'multipart/form-data'
+        }
+      });
+      
+      toast({
+        title: "Success",
+        description: "PDF uploaded successfully"
+      });
+      
+      event.target.reset();
+      fetchPdfs();
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to upload PDF",
+        variant: "destructive"
+      });
+    } finally {
+      setUploadLoading(false);
+    }
+  };
+
+  const deletePdf = async (pdfId) => {
+    if (!window.confirm('Are you sure you want to delete this PDF?')) return;
+    
+    try {
+      await axios.delete(`${API}/admin/pdfs/${pdfId}`, {
+        headers: getAuthHeader()
+      });
+      
+      toast({
+        title: "Success",
+        description: "PDF deleted successfully"
+      });
+      
+      fetchPdfs();
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to delete PDF",
+        variant: "destructive"
+      });
+    }
+  };
+
+  // Contact Messages Functions
+  const fetchContacts = async () => {
+    try {
+      setLoading(true);
+      const response = await axios.get(`${API}/admin/contacts`, {
+        headers: getAuthHeader()
+      });
+      setContacts(response.data);
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to fetch contact messages",
+        variant: "destructive"
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Schedule Functions
+  const fetchSchedules = async () => {
+    try {
+      setLoading(true);
+      const response = await axios.get(`${API}/schedule`);
+      setSchedules(response.data);
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to fetch schedules",
+        variant: "destructive"
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleScheduleCreate = async (event) => {
+    event.preventDefault();
+    const formData = new FormData(event.target);
+    
+    const scheduleData = {
+      exam_type: formData.get('exam_type'),
+      subject: formData.get('subject'),
+      day_of_week: formData.get('day_of_week'),
+      time: formData.get('time'),
+      is_online: formData.get('is_online') === 'on',
+      meeting_link: formData.get('meeting_link') || null
+    };
+    
+    try {
+      await axios.post(`${API}/admin/schedule`, scheduleData, {
+        headers: getAuthHeader()
+      });
+      
+      toast({
+        title: "Success",
+        description: "Schedule created successfully"
+      });
+      
+      event.target.reset();
+      fetchSchedules();
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to create schedule",
+        variant: "destructive"
+      });
+    }
+  };
+
+  const deleteSchedule = async (scheduleId) => {
+    if (!window.confirm('Are you sure you want to delete this schedule?')) return;
+    
+    try {
+      await axios.delete(`${API}/admin/schedule/${scheduleId}`, {
+        headers: getAuthHeader()
+      });
+      
+      toast({
+        title: "Success",
+        description: "Schedule deleted successfully"
+      });
+      
+      fetchSchedules();
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to delete schedule",
+        variant: "destructive"
+      });
+    }
+  };
+
+  // Load data when view changes
+  React.useEffect(() => {
+    if (currentView === 'pdfs') {
+      fetchPdfs();
+    } else if (currentView === 'contacts') {
+      fetchContacts();
+    } else if (currentView === 'schedules') {
+      fetchSchedules();
+    }
+  }, [currentView]);
+
+  const renderPdfManagement = () => (
     <motion.div
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       transition={{ duration: 0.6 }}
     >
-      <h2 className="text-3xl font-bold text-gray-900 mb-8">Dashboard Overview</h2>
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        {[
-          { title: "Total Students", value: "5,247", icon: "👨‍🎓", color: "from-blue-500 to-blue-600" },
-          { title: "Active Courses", value: "24", icon: "📚", color: "from-green-500 to-green-600" },
-          { title: "Study Materials", value: "156", icon: "📄", color: "from-purple-500 to-purple-600" },
-          { title: "Success Rate", value: "98%", icon: "🏆", color: "from-orange-500 to-orange-600" }
-        ].map((stat, index) => (
-          <motion.div
-            key={index}
-            className={`bg-gradient-to-br ${stat.color} p-6 rounded-2xl text-white`}
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: index * 0.1 }}
-            whileHover={{ scale: 1.05 }}
-          >
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-white/80 text-sm">{stat.title}</p>
-                <p className="text-3xl font-bold mt-1">{stat.value}</p>
-              </div>
-              <div className="text-4xl">{stat.icon}</div>
+      <h2 className="text-3xl font-bold text-gray-900 mb-8">Manage PDFs</h2>
+      
+      {/* Upload Form */}
+      <div className="bg-white rounded-2xl p-6 shadow-lg border border-gray-200/50 mb-8">
+        <h3 className="text-xl font-bold text-gray-900 mb-4">Upload New PDF</h3>
+        <form onSubmit={handlePdfUpload} className="space-y-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">Title *</label>
+              <input
+                type="text"
+                name="title"
+                required
+                className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-primary-500 focus:ring-2 focus:ring-primary-200 transition-all duration-300"
+                placeholder="Enter PDF title"
+              />
             </div>
-          </motion.div>
-        ))}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">Exam Type *</label>
+              <select
+                name="exam_type"
+                required
+                className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-primary-500 focus:ring-2 focus:ring-primary-200 transition-all duration-300"
+              >
+                <option value="">Select Exam Type</option>
+                <option value="SSC">SSC</option>
+                <option value="UPSC">UPSC</option>
+                <option value="Banking">Banking</option>
+                <option value="Railway">Railway</option>
+                <option value="State PSC">State PSC</option>
+              </select>
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">Subject *</label>
+              <input
+                type="text"
+                name="subject"
+                required
+                className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-primary-500 focus:ring-2 focus:ring-primary-200 transition-all duration-300"
+                placeholder="Enter subject"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">Batch *</label>
+              <input
+                type="text"
+                name="batch"
+                required
+                className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-primary-500 focus:ring-2 focus:ring-primary-200 transition-all duration-300"
+                placeholder="Enter batch"
+              />
+            </div>
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">Description</label>
+            <textarea
+              name="description"
+              rows={3}
+              className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-primary-500 focus:ring-2 focus:ring-primary-200 transition-all duration-300"
+              placeholder="Enter description (optional)"
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">PDF File *</label>
+            <input
+              type="file"
+              name="file"
+              accept=".pdf"
+              required
+              className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-primary-500 focus:ring-2 focus:ring-primary-200 transition-all duration-300"
+            />
+          </div>
+          <motion.button
+            type="submit"
+            disabled={uploadLoading}
+            className="bg-gradient-to-r from-primary-600 to-accent-600 text-white px-8 py-3 rounded-xl font-semibold hover:from-primary-700 hover:to-accent-700 transition-all duration-300 disabled:opacity-50"
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.98 }}
+          >
+            {uploadLoading ? 'Uploading...' : 'Upload PDF'}
+          </motion.button>
+        </form>
+      </div>
+
+      {/* PDF List */}
+      <div className="bg-white rounded-2xl p-6 shadow-lg border border-gray-200/50">
+        <h3 className="text-xl font-bold text-gray-900 mb-4">Uploaded PDFs</h3>
+        {loading ? (
+          <div className="flex justify-center py-8">
+            <motion.div
+              className="w-8 h-8 border-4 border-primary-200 border-t-primary-600 rounded-full"
+              animate={{ rotate: 360 }}
+              transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+            />
+          </div>
+        ) : (
+          <div className="space-y-4">
+            {pdfs.length === 0 ? (
+              <p className="text-gray-500 text-center py-8">No PDFs uploaded yet</p>
+            ) : (
+              pdfs.map((pdf) => (
+                <div key={pdf.id} className="bg-gray-50 rounded-xl p-4 flex items-center justify-between">
+                  <div className="flex-1">
+                    <h4 className="font-semibold text-gray-900">{pdf.title}</h4>
+                    <p className="text-sm text-gray-600">
+                      {pdf.exam_type} • {pdf.subject} • {pdf.batch}
+                    </p>
+                    <p className="text-xs text-gray-500">
+                      Uploaded: {new Date(pdf.upload_date).toLocaleDateString()}
+                    </p>
+                  </div>
+                  <motion.button
+                    onClick={() => deletePdf(pdf.id)}
+                    className="bg-red-500 text-white px-4 py-2 rounded-lg hover:bg-red-600 transition-colors"
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                  >
+                    Delete
+                  </motion.button>
+                </div>
+              ))
+            )}
+          </div>
+        )}
+      </div>
+    </motion.div>
+  );
+
+  const renderContactMessages = () => (
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      transition={{ duration: 0.6 }}
+    >
+      <h2 className="text-3xl font-bold text-gray-900 mb-8">Contact Messages</h2>
+      
+      <div className="bg-white rounded-2xl p-6 shadow-lg border border-gray-200/50">
+        {loading ? (
+          <div className="flex justify-center py-8">
+            <motion.div
+              className="w-8 h-8 border-4 border-primary-200 border-t-primary-600 rounded-full"
+              animate={{ rotate: 360 }}
+              transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+            />
+          </div>
+        ) : (
+          <div className="space-y-6">
+            {contacts.length === 0 ? (
+              <p className="text-gray-500 text-center py-8">No contact messages yet</p>
+            ) : (
+              contacts.map((contact) => (
+                <div key={contact.id} className="bg-gray-50 rounded-xl p-6 border border-gray-200">
+                  <div className="flex items-start justify-between mb-4">
+                    <div>
+                      <h4 className="font-bold text-gray-900 text-lg">{contact.name}</h4>
+                      <p className="text-sm text-gray-600">{contact.email} • {contact.phone}</p>
+                    </div>
+                    <span className="text-xs text-gray-500">
+                      {new Date(contact.timestamp).toLocaleString()}
+                    </span>
+                  </div>
+                  <div className="mb-3">
+                    <span className="bg-primary-100 text-primary-700 px-3 py-1 rounded-full text-sm font-medium">
+                      Interested in: {contact.course_interested}
+                    </span>
+                  </div>
+                  {contact.message && (
+                    <div className="bg-white p-4 rounded-lg border">
+                      <p className="text-gray-700">{contact.message}</p>
+                    </div>
+                  )}
+                </div>
+              ))
+            )}
+          </div>
+        )}
+      </div>
+    </motion.div>
+  );
+
+  const renderScheduleManagement = () => (
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      transition={{ duration: 0.6 }}
+    >
+      <h2 className="text-3xl font-bold text-gray-900 mb-8">Class Schedule Management</h2>
+      
+      {/* Create Schedule Form */}
+      <div className="bg-white rounded-2xl p-6 shadow-lg border border-gray-200/50 mb-8">
+        <h3 className="text-xl font-bold text-gray-900 mb-4">Create New Schedule</h3>
+        <form onSubmit={handleScheduleCreate} className="space-y-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">Exam Type *</label>
+              <select
+                name="exam_type"
+                required
+                className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-primary-500 focus:ring-2 focus:ring-primary-200 transition-all duration-300"
+              >
+                <option value="">Select Exam Type</option>
+                <option value="SSC">SSC</option>
+                <option value="UPSC">UPSC</option>
+                <option value="Banking">Banking</option>
+                <option value="Railway">Railway</option>
+                <option value="State PSC">State PSC</option>
+              </select>
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">Subject *</label>
+              <input
+                type="text"
+                name="subject"
+                required
+                className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-primary-500 focus:ring-2 focus:ring-primary-200 transition-all duration-300"
+                placeholder="Enter subject"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">Day of Week *</label>
+              <select
+                name="day_of_week"
+                required
+                className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-primary-500 focus:ring-2 focus:ring-primary-200 transition-all duration-300"
+              >
+                <option value="">Select Day</option>
+                <option value="Monday">Monday</option>
+                <option value="Tuesday">Tuesday</option>
+                <option value="Wednesday">Wednesday</option>
+                <option value="Thursday">Thursday</option>
+                <option value="Friday">Friday</option>
+                <option value="Saturday">Saturday</option>
+                <option value="Sunday">Sunday</option>
+              </select>
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">Time *</label>
+              <input
+                type="text"
+                name="time"
+                required
+                className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-primary-500 focus:ring-2 focus:ring-primary-200 transition-all duration-300"
+                placeholder="e.g., 10:00 AM - 12:00 PM"
+              />
+            </div>
+          </div>
+          <div className="flex items-center space-x-4">
+            <label className="flex items-center space-x-2">
+              <input
+                type="checkbox"
+                name="is_online"
+                className="rounded border-gray-300 text-primary-600 focus:ring-primary-500"
+              />
+              <span className="text-sm font-medium text-gray-700">Online Class</span>
+            </label>
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">Meeting Link (for online classes)</label>
+            <input
+              type="url"
+              name="meeting_link"
+              className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-primary-500 focus:ring-2 focus:ring-primary-200 transition-all duration-300"
+              placeholder="Enter meeting link"
+            />
+          </div>
+          <motion.button
+            type="submit"
+            className="bg-gradient-to-r from-primary-600 to-accent-600 text-white px-8 py-3 rounded-xl font-semibold hover:from-primary-700 hover:to-accent-700 transition-all duration-300"
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.98 }}
+          >
+            Create Schedule
+          </motion.button>
+        </form>
+      </div>
+
+      {/* Schedule List */}
+      <div className="bg-white rounded-2xl p-6 shadow-lg border border-gray-200/50">
+        <h3 className="text-xl font-bold text-gray-900 mb-4">Current Schedules</h3>
+        {loading ? (
+          <div className="flex justify-center py-8">
+            <motion.div
+              className="w-8 h-8 border-4 border-primary-200 border-t-primary-600 rounded-full"
+              animate={{ rotate: 360 }}
+              transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+            />
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {schedules.length === 0 ? (
+              <p className="text-gray-500 text-center py-8 col-span-full">No schedules created yet</p>
+            ) : (
+              schedules.map((schedule) => (
+                <div key={schedule.id} className="bg-gray-50 rounded-xl p-4 border border-gray-200">
+                  <div className="flex items-start justify-between mb-3">
+                    <div>
+                      <h4 className="font-semibold text-gray-900">{schedule.exam_type}</h4>
+                      <p className="text-sm text-gray-600">{schedule.subject}</p>
+                    </div>
+                    <motion.button
+                      onClick={() => deleteSchedule(schedule.id)}
+                      className="text-red-500 hover:text-red-700 text-sm"
+                      whileHover={{ scale: 1.1 }}
+                      whileTap={{ scale: 0.9 }}
+                    >
+                      ×
+                    </motion.button>
+                  </div>
+                  <div className="text-sm text-gray-600 mb-2">
+                    <p>{schedule.day_of_week} • {schedule.time}</p>
+                  </div>
+                  {schedule.is_online && schedule.meeting_link && (
+                    <a
+                      href={schedule.meeting_link}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-block bg-green-500 text-white px-3 py-1 rounded-full text-xs font-medium hover:bg-green-600 transition-colors"
+                    >
+                      Join Online
+                    </a>
+                  )}
+                </div>
+              ))
+            )}
+          </div>
+        )}
       </div>
     </motion.div>
   );
 
   const renderContent = () => {
     switch (currentView) {
-      case 'dashboard':
-        return renderDashboard();
       case 'pdfs':
-        return <div className="text-center py-20 text-gray-500">PDF Management - Implementation needed</div>;
-      case 'schedules':
-        return <div className="text-center py-20 text-gray-500">Schedule Management - Implementation needed</div>;
+        return renderPdfManagement();
       case 'contacts':
-        return <div className="text-center py-20 text-gray-500">Contact Messages - Implementation needed</div>;
+        return renderContactMessages();
+      case 'schedules':
+        return renderScheduleManagement();
       default:
-        return renderDashboard();
+        return renderPdfManagement();
     }
   };
 

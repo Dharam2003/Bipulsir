@@ -687,7 +687,7 @@ const Contact = () => {
     setLoading(true);
 
     try {
-      await axios.post(`${API}/contacts`, formData);
+      await axios.post(`${API}/contact`, formData);
       toast({
         title: "Success!",
         description: "Your message has been submitted. We'll contact you soon."

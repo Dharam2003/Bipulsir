@@ -152,6 +152,9 @@ backend:
       - working: true
         agent: "testing"
         comment: "✅ POST-BIPULSIR-TRANSFORMATION VERIFICATION: Admin authentication system FULLY OPERATIONAL after UI/UX transformation. HTTP Basic Auth with admin/admin123 credentials working perfectly. Valid credentials grant access to all protected endpoints. Invalid credentials properly rejected with 401 status. All admin-only operations (PDF upload/delete, contact retrieval, schedule management) properly secured. Authentication system ready for production with new Bipulsir design."
+      - working: true
+        agent: "testing"
+        comment: "✅ ADMIN LOGIN FIX VERIFICATION: CRITICAL ISSUE RESOLVED! Fixed frontend authentication by changing login test endpoint from non-existent GET /api/admin/pdfs to existing GET /api/admin/contacts. Backend authentication working perfectly with admin/admin123 credentials. CORS properly configured. All admin endpoints accessible with proper Basic Auth. Frontend login should now work correctly. Root cause: Frontend was trying to authenticate against POST-only endpoint instead of GET endpoint."
 
   - task: "Contact Form Submission API"
     implemented: true

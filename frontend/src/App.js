@@ -536,18 +536,30 @@ const Notes = () => {
                   </div>
 
                   <div className="text-sm text-gray-500 mb-4">
-                    Uploaded: {new Date(pdf.uploaded_at).toLocaleDateString()}
+                    Uploaded: {new Date(pdf.upload_date).toLocaleDateString()}
                   </div>
 
-                  <motion.button
-                    onClick={() => downloadPdf(pdf.id, pdf.title)}
-                    className="w-full bg-gradient-to-r from-primary-600 to-accent-600 text-white py-3 rounded-full font-semibold hover:from-primary-700 hover:to-accent-700 transition-all duration-300 flex items-center justify-center space-x-2"
-                    whileHover={{ scale: 1.02 }}
-                    whileTap={{ scale: 0.98 }}
-                  >
-                    <span>📥</span>
-                    <span>Download PDF</span>
-                  </motion.button>
+                  <div className="flex space-x-3">
+                    <motion.button
+                      onClick={() => viewPdf(pdf.id, pdf.title)}
+                      className="flex-1 bg-gradient-to-r from-blue-600 to-blue-700 text-white py-3 rounded-full font-semibold hover:from-blue-700 hover:to-blue-800 transition-all duration-300 flex items-center justify-center space-x-2"
+                      whileHover={{ scale: 1.02 }}
+                      whileTap={{ scale: 0.98 }}
+                    >
+                      <span>👁️</span>
+                      <span>View PDF</span>
+                    </motion.button>
+                    
+                    <motion.button
+                      onClick={() => downloadPdf(pdf.id, pdf.title)}
+                      className="flex-1 bg-gradient-to-r from-primary-600 to-accent-600 text-white py-3 rounded-full font-semibold hover:from-primary-700 hover:to-accent-700 transition-all duration-300 flex items-center justify-center space-x-2"
+                      whileHover={{ scale: 1.02 }}
+                      whileTap={{ scale: 0.98 }}
+                    >
+                      <span>📥</span>
+                      <span>Download</span>
+                    </motion.button>
+                  </div>
                 </motion.div>
               ))}
             </div>

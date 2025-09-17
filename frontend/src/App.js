@@ -421,6 +421,7 @@ const Notes = () => {
       document.body.appendChild(link);
       link.click();
       link.remove();
+      window.URL.revokeObjectURL(url);
       
       toast({
         title: "Success",
@@ -430,6 +431,25 @@ const Notes = () => {
       toast({
         title: "Error",
         description: "Failed to download PDF",
+        variant: "destructive"
+      });
+    }
+  };
+
+  const viewPdf = async (pdfId, title) => {
+    try {
+      // Open PDF in new tab for viewing
+      const pdfUrl = `${API}/pdfs/download/${pdfId}`;
+      window.open(pdfUrl, '_blank');
+      
+      toast({
+        title: "Success",
+        description: "PDF opened in new tab"
+      });
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to open PDF",
         variant: "destructive"
       });
     }
